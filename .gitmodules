@@ -1,0 +1,3 @@
+[submodule "src/ui/lib/fjsc"]
+	path = src/ui/lib/fjsc
+	url = https://github.com/targoninc/fjsc.git
