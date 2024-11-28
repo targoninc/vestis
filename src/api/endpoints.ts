@@ -46,7 +46,7 @@ export function createEndpoints(app: Application, db: Database) {
     }
 
     app.post('/assets', async (req, res) => {
-        const { type, manufacturer, model, serialNumber, isUnique, uniqueString, count, priceInCents, description, tags } = req.body;
+        const { type, manufacturer, model, serialNumber, isUnique, uniqueString, count, priceInCents, description, tags }: Asset = req.body;
         CLI.log(`Creating asset ${manufacturer}/${model}`);
         const id = uuidv4();
         try {
@@ -165,7 +165,7 @@ export function createEndpoints(app: Application, db: Database) {
     });
 
     app.post('/tags', (req, res) => {
-        const { id, name } = req.body;
+        const { id, name }: Tag = req.body;
         CLI.log(`Creating tag ${name}`);
         db.run('INSERT INTO tags (id, name) VALUES (?, ?)', [id, name], function (err) {
             if (err) {
@@ -199,7 +199,7 @@ export function createEndpoints(app: Application, db: Database) {
     });
 
     app.post('/sets', async (req, res) => {
-        const { setName, assets } = req.body;
+        const { setName, assets }: AssetSet = req.body;
         CLI.log(`Creating set ${setName}`);
         const id = uuidv4();
         await dbRunAsync('INSERT INTO sets (id, setName) VALUES (?, ?)', [id, setName]);
@@ -252,7 +252,7 @@ export function createEndpoints(app: Application, db: Database) {
     });
 
     app.post('/jobs', async (req, res) => {
-        const { jobNumber, name, customerId, contact, startTime, endTime, dayCount, disposition, assets, sets } = req.body;
+        const { jobNumber, name, customerId, contact, startTime, endTime, dayCount, disposition, assets, sets }: Job = req.body;
         CLI.log(`Creating job ${jobNumber}/${name}`);
         const id = uuidv4();
         await dbRunAsync('INSERT INTO jobs (id, jobNumber, customerId, contact, name, startTime, endTime, dayCount, disposition) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', [id, jobNumber, customerId, contact, name, startTime, endTime, dayCount, disposition]);

@@ -5,6 +5,7 @@ import {initializeTables, insertDefaultTags} from "./api/defaultValues";
 import express from "express";
 import path from "path";
 import dotenv from "dotenv";
+import cors from "cors";
 
 const sqlite3 = require('sqlite3').verbose();
 
@@ -36,6 +37,12 @@ async function startServer(port: number = 48678) {
 
     const app = express();
     app.use(express.json());
+    app.use(cors({
+        origin: "*",
+        methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+        preflightContinue: false,
+        optionsSuccessStatus: 204,
+    }));
     app.get('/', (req, res) => {
         res.send('Hello World');
     });
@@ -69,7 +76,5 @@ export function createWindow() {
     }
     win.webContents.openDevTools();
 
-    startServer().then(() => {
-        console.log("Server started.");
-    });
+    startServer().then();
 }

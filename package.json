@@ -21,6 +21,7 @@
     "@electron-forge/plugin-fuses": "^7.6.0",
     "@electron-forge/plugin-vite": "^7.6.0",
     "@electron/fuses": "^1.8.0",
+    "@types/cors": "^2.8.17",
     "@types/electron-squirrel-startup": "^1.0.2",
     "@types/express": "^5.0.0",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
@@ -39,6 +40,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "electron-squirrel-startup": "^1.0.1",
     "express": "^4.21.1",

@@ -3,16 +3,16 @@ import {AssetSet} from "./AssetSet";
 
 export interface Job {
     id: string;
-    jobNumber: number;
+    jobNumber: string;
     customerId: string;
     contact: string;
     name: string;
-    startTime: string;
-    endTime: string;
+    startTime: number;
+    endTime: number;
     dayCount: number;
     disposition: number;
-    createdAt: string;
-    updatedAt: string;
+    createdAt: Date;
+    updatedAt: Date;
     assets?: Asset[];
     sets?: AssetSet[];
 }

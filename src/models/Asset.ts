@@ -12,8 +12,8 @@ export interface Asset {
     priceInCents: number;
     description: string;
     count: number;
-    createdAt: string;
-    updatedAt: string;
+    createdAt: Date;
+    updatedAt: Date;
     dayRate: number;
     tags?: Tag[];
 }
