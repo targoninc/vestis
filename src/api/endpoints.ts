@@ -1,69 +1,31 @@
 import { v4 as uuidv4 } from 'uuid';
-import {Application} from "express";
-import {Database} from "sqlite3";
 import {Asset} from "../models/Asset";
 import {Tag} from "../models/Tag";
 import {AssetSet} from "../models/AssetSet";
 import {Job} from "../models/Job";
 import {CLI} from "./CLI";
+import {DB} from "./db";
+import {Application} from "express";
+import {AssetManagerDB} from "./assetManagerDb";
 
-export function createEndpoints(app: Application, db: Database) {
-    const INSERT_ASSET_QUERY = `INSERT INTO assets (id, type, manufacturer, model, serialNumber, isUnique, uniqueString, isDeleted, count, priceInCents, dayRate, description)
-                                      VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)`;
+export function createEndpoints(app: Application, db: DB) {
     const UPDATE_ASSET_QUERY = `UPDATE assets SET type = ?, manufacturer = ?, model = ?, serialNumber = ?, isUnique = ?,
                                       uniqueString = ?, count = ?, priceInCents = ?, dayRate = ?, description = ? WHERE id = ? OR uniqueString = ?`;
-    const INSERT_TAG_QUERY = `INSERT INTO tags (id, name) VALUES (?, ?) ON CONFLICT DO NOTHING`;
-    const ASSOCIATE_TAG_QUERY = `INSERT INTO assets_tags (asset_id, tag_id) VALUES (?, ?) ON CONFLICT DO NOTHING`;
-    const GET_ALL_ASSETS_QUERY = `SELECT * FROM assets WHERE isDeleted = 0`;
-    const GET_ASSET_TAGS_QUERY = `SELECT * FROM tags WHERE id IN (SELECT tag_id FROM assets_tags WHERE asset_id = ?)`;
-
-    function dbRunAsync(query: string, params: any[] = [], errorCallback = (_: any) => {}) {
-        return new Promise((resolve, reject) => {
-            db.run(query, params, function (err: any) {
-                if (err) {
-                    if (errorCallback) {
-                        errorCallback(err);
-                    }
-                    return reject(err);
-                }
-                resolve(this);
-            });
-        });
-    }
-
-    function dbGetAsync<T>(query: string, params: any[] = [], errorCallback = (_: any) => {}): Promise<T[]> {
-        return new Promise((resolve, reject) => {
-            db.all(query, params, function (err, rows: T[]) {
-                if (err) {
-                    if (errorCallback) {
-                        errorCallback(err);
-                    }
-                    return reject(err);
-                }
-                resolve(rows);
-            });
-        });
-    }
 
     app.post('/assets', async (req, res) => {
-        const { type, manufacturer, model, serialNumber, isUnique, uniqueString, count, priceInCents, description, tags }: Asset = req.body;
-        CLI.log(`Creating asset ${manufacturer}/${model}`);
+        const asset = req.body as Asset;
+        CLI.log(`Creating asset ${asset.manufacturer}/${asset.model}`);
         const id = uuidv4();
         try {
-            await dbRunAsync(INSERT_ASSET_QUERY,
-                [id, type, manufacturer, model, serialNumber, isUnique, uniqueString, count, priceInCents, description]);
-
-            for (let tag of tags) {
-                await dbRunAsync(INSERT_TAG_QUERY, [tag.id, tag.name]);
-                await dbRunAsync(ASSOCIATE_TAG_QUERY, [id, tag.id]);
-            }
-
+            await AssetManagerDB.insertAsset(db, asset);
             res.status(201).send({ id });
         } catch (err: any) {
             res.status(500).send(err.message);
         }
     });
 
+    const GET_ALL_ASSETS_QUERY = `SELECT * FROM assets WHERE isDeleted = 0`;
+    const GET_ASSET_TAGS_QUERY = `SELECT * FROM tags WHERE id IN (SELECT tag_id FROM assets_tags WHERE asset_id = ?)`;
     app.get('/assets', async (req, res) => {
         CLI.log(`Getting assets`);
         try {

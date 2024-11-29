@@ -1,28 +1,13 @@
 import {BrowserWindow} from "electron";
 import {StorageCache} from "./api/storagecache";
 import {createEndpoints} from "./api/endpoints";
-import {initializeTables, insertDefaultTags} from "./api/defaultValues";
 import express from "express";
 import path from "path";
 import dotenv from "dotenv";
 import cors from "cors";
-
-const sqlite3 = require('sqlite3').verbose();
+import {DB} from "./api/db";
 
 dotenv.config();
-
-function startDb() {
-    const db = new sqlite3.Database(process.env.DB_PATH ?? ':memory:');
-
-    db.serialize(() => {
-        initializeTables(db);
-        insertDefaultTags(db);
-
-        console.log('DB started at ' + process.env.DB_PATH);
-    });
-
-    return db;
-}
 
 async function startServer(port: number = 48678) {
     try {
@@ -47,7 +32,7 @@ async function startServer(port: number = 48678) {
         res.send('Hello World');
     });
 
-    const db = startDb();
+    const db = new DB();
     createEndpoints(app, db);
     StorageCache.ensurePath();
     app.listen(port, () => {
