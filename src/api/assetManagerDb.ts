@@ -22,8 +22,8 @@ export class AssetManagerDB {
                                                         description)
                                     VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)`;
 
+        const id = uuidv4();
         const {
-            id,
             type,
             manufacturer,
             model,
@@ -41,6 +41,7 @@ export class AssetManagerDB {
             await db.runAsync(INSERT_TAG_QUERY, [tag.id, tag.name]);
             await db.runAsync(ASSOCIATE_TAG_QUERY, [id, tag.id]);
         }
+        return id;
     }
 
     static async getAssets(db: DB) {

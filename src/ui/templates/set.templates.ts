@@ -262,7 +262,6 @@ export class SetTemplates {
                         }),
                     ).build(),
                 create("table")
-                    .classes("item-rows")
                     .children(
                         create("thead")
                             .children(
@@ -326,7 +325,6 @@ export class SetTemplates {
                         }),
                     ).build(),
                 create("table")
-                    .classes("item-rows")
                     .children(
                         create("thead")
                             .children(

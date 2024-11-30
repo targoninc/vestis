@@ -378,7 +378,6 @@ nav {
 }
 
 table {
-    border-collapse: collapse;
     width: 100%;
     border-radius: var(--input-border-radius);
     overflow: hidden;
@@ -400,15 +399,6 @@ table tr:nth-child(odd) {
 
 table tr:nth-child(even) {
     background-color: var(--bg-3);
-}
-
-table.item-rows tr {
-    background: var(--bg-2) !important;
-}
-
-table.item-rows tr:hover {
-    background: var(--bg-4) !important;
-    cursor: pointer;
 }
 
 hr {

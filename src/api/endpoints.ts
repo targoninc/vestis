@@ -1,4 +1,3 @@
-import { v4 as uuidv4 } from 'uuid';
 import {Asset} from "../models/Asset";
 import {Tag} from "../models/Tag";
 import {AssetSet} from "../models/AssetSet";
@@ -12,9 +11,8 @@ export function createEndpoints(app: Application, db: DB) {
     app.post('/assets', async (req, res) => {
         const asset = req.body as Asset;
         CLI.log(`Creating asset ${asset.manufacturer}/${asset.model}`);
-        const id = uuidv4();
         try {
-            await AssetManagerDB.insertAsset(db, asset);
+            const id = await AssetManagerDB.insertAsset(db, asset);
             res.status(201).send({ id });
         } catch (err: any) {
             res.status(500).send(err.message);

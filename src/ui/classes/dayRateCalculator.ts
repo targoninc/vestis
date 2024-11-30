@@ -2,6 +2,7 @@ import {AssetTypes} from "./types";
 
 export class DayRateCalculator {
     static getRateForType(type: keyof typeof AssetTypes) {
+        console.log({type});
         switch (type) {
             case AssetTypes.grip.id:
                 return 50;
@@ -13,11 +14,12 @@ export class DayRateCalculator {
             case AssetTypes.video.id:
                 return 30;
             default:
-                return null;
+                return 1;
         }
     }
 
     static calculateDayRate(dayRateFactor: number, priceInCents: number) {
+        console.log({dayRateFactor, priceInCents});
         return Math.round((priceInCents / 100) / dayRateFactor) * 100;
     }
 }
