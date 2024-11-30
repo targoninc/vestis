@@ -12,7 +12,6 @@ initializeStore();
 
 const content = document.getElementById('content');
 const app = LayoutTemplates.app(activePage);
-console.log(app);
 content.appendChild(app);
 
 const TIMEOUT = 50;
