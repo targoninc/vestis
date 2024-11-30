@@ -52,6 +52,8 @@ export class AssetManagerDB {
         for (let asset of assets) {
             asset.tags = await db.getAsync<Tag>(GET_ASSET_TAGS_QUERY, [asset.id]);
         }
+
+        return assets;
     }
 
     static async getAsset(db: DB, identifier: string) {

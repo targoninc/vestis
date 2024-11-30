@@ -50,7 +50,7 @@ export function createWindow() {
             nodeIntegration: true,
             preload: path.join(__dirname, 'preload.js'),
         },
-        icon: 'src/ui/assets/images/icon_1x.png',
+        icon: 'src/assets/icon_512.png',
     });
 
     // and load the index.html of the app.
