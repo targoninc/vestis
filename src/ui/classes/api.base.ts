@@ -24,7 +24,7 @@ export class ApiBase {
         return await this.basicResponseHandling<T>(res);
     }
 
-    static async delete(url: string, sendCredentials = true) {
+    static async delete(url: string, sendCredentials = false) {
         const res = await fetch(ApiBase.baseUrl + url, {
             method: 'DELETE',
             headers: {
@@ -35,7 +35,7 @@ export class ApiBase {
         return await this.basicResponseHandling(res);
     }
 
-    static async put(url: string, data = {}, sendCredentials = true) {
+    static async put(url: string, data = {}, sendCredentials = false) {
         const res = await fetch(ApiBase.baseUrl + url, {
             method: 'PUT',
             headers: {
