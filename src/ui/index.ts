@@ -7,6 +7,7 @@ import "../styles/reset.css";
 import "../styles/index.css";
 import "../styles/fonts.css";
 import "../styles/classes.css";
+import {pages} from "./classes/pages";
 
 initializeStore();
 
@@ -61,6 +62,11 @@ document.addEventListener("keydown", (e) => {
             }
             toast("Added asset to checkout.", null, ToastType.positive);
             scannerBuffer.value = "";
+        } else {
+            const isNumber = e.key.match(/^[0-9]+$/);
+            if (isNumber) {
+                activePage.value = pages.find((p, i) => (i + 1).toString() === e.key)?.name ?? "checkout";
+            }
         }
     }
 });

@@ -61,7 +61,7 @@ export class AssetTemplates {
         filterAssets();
 
         return create("div")
-            .classes("flex-v", "flex-grow", "main-panel", "panel")
+            .classes("flex-v", "flex-grow")
             .children(
                 create("span")
                     .text("Assets")

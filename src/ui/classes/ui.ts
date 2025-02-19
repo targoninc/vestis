@@ -1,4 +1,4 @@
-import {LayoutTemplates} from "../templates/layout.templates.js";
+import {LayoutTemplates} from "../templates/layout.templates";
 import {AnyNode, create} from "../lib/fjsc/src/f2";
 import {ToastType} from "../enums/ToastType";
 

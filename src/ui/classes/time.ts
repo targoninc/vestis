@@ -1,8 +1,8 @@
 export function formatTime(ms: number) {
-    let milliseconds = ms % 1000;
-    let seconds = Math.floor(ms / 1000) % 60;
-    let minutes = Math.floor(ms / 1000 / 60) % 60;
-    let hours = Math.floor(ms / 1000 / 60 / 60);
+    const milliseconds = ms % 1000;
+    const seconds = Math.floor(ms / 1000) % 60;
+    const minutes = Math.floor(ms / 1000 / 60) % 60;
+    const hours = Math.floor(ms / 1000 / 60 / 60);
     let result = "";
     if (hours > 0) {
         result += `${hours}h `;

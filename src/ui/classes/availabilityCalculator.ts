@@ -17,7 +17,7 @@ export class AvailabilityCalculator {
 
     static jobAvailabilityErrors(job: Job, existingJobs: Job[]) {
         const assetsWithErrors = [];
-        for (let asset of job.assets) {
+        for (const asset of job.assets) {
             const existingJobsWithAsset = this.getJobsWithAsset(existingJobs, asset).filter(j => j.id !== job.id);
             const datesFromJobs = existingJobsWithAsset.map(job => {
                 return {
@@ -39,14 +39,14 @@ export class AvailabilityCalculator {
     }
 
     static startDate(startTime: number, offset: number) {
-        let start = new Date(startTime);
+        const start = new Date(startTime);
         start.setHours(0, 0, 0, 0);
         start.setDate(start.getDate() + offset);
         return start;
     }
 
     static endDate(endTime: number, offset: number) {
-        let end = new Date(endTime);
+        const end = new Date(endTime);
         end.setHours(23, 59, 59, 999);
         end.setDate(end.getDate() + offset);
         return end;

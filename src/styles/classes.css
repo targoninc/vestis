@@ -188,11 +188,9 @@ iframe {
 }
 
 .navigation-button {
-    width: 100%;
-    max-width: 100%;
     justify-content: center;
-    font-size: 1.5em;
-    padding: var(--gap-v);
+    font-size: 1.2em;
+    padding: var(--gap-h) var(--gap-v);
 }
 
 .navigation-button.active {

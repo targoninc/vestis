@@ -10,12 +10,14 @@
     --white-4: #d6c9c5;
     --grey-light: #9f9f9f;
     --grey-dark: #646464;
+
     --blue: #0b72bc;
     --green: #6a994eff;
     --red: #bc4749ff;
     --yellow: #f0c929ff;
     --orange: #f09029;
     --purple: #6a4c93ff;
+
     --tag-blue: #0c446d;
     --tag-green: #4b6a0c;
     --tag-red: #6d0c0c;
@@ -23,6 +25,7 @@
     --tag-purple: #4b0c6d;
     --tag-teal: #0c6d4b;
     --tag-magenta: #6d0c6d;
+
     --font-size-base: 16px;
     --gap-h: 5px;
     --gap-v: 10px;
@@ -35,6 +38,7 @@
     --message-padding-left: 3em;
     --tag-padding: 0.4em 0.8em;
     --tab-padding: 0.6em 1.2em;
+
     --bg: var(--black);
     --bg-2: var(--black-2);
     --bg-3: var(--black-3);

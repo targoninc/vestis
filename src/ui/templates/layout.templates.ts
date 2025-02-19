@@ -6,7 +6,7 @@ import {CalendarTemplates} from "./calendar.templates";
 import {CheckoutTemplates} from "./checkout.templates";
 import {Api} from "../classes/api";
 import {createModal, toast} from "../classes/ui";
-import {SetTemplates} from "./set.templates.js";
+import {SetTemplates} from "./set.templates";
 import {JobTemplates} from "./job.templates";
 import {compute, Signal} from "../lib/fjsc/src/signals";
 import {ToastType} from "../enums/ToastType";
@@ -18,16 +18,16 @@ import {Asset} from "../../models/Asset";
 export class LayoutTemplates {
     static app(activePage: Signal<string>) {
         return create("div")
-            .classes("app", "no-wrap", "padded-big", "flex")
+            .classes("app", "no-wrap", "padded-big", "flex-v")
             .children(
-                LayoutTemplates.sideBar(activePage),
+                LayoutTemplates.topBar(activePage),
                 LayoutTemplates.mainPanel(activePage),
             ).build();
     }
 
-    static sideBar(activePage: Signal<string>) {
+    static topBar(activePage: Signal<string>) {
         return create("div")
-            .classes("flex-v", "sidebar", "panel")
+            .classes("flex", "panel")
             .children(
                 pages.map((page: Page) => {
                     const active = compute((val): string => val === page.name ? "active" : "_", activePage);
@@ -59,8 +59,8 @@ export class LayoutTemplates {
                 create("div")
                     .classes("flex")
                     .children(
-                        GenericTemplates.buttonWithIcon("add", "Add asset", () => {
-                            createModal(AssetTemplates.assetForm({}, "Add asset", (data, done) => {
+                        GenericTemplates.buttonWithIcon("add", "New asset", () => {
+                            createModal(AssetTemplates.assetForm({}, "New asset", (data, done) => {
                                 Api.createAsset(data).then(() => {
                                     Api.getAssets().then(assetsResponse => {
                                         if (assetsResponse.success) {
@@ -71,7 +71,7 @@ export class LayoutTemplates {
                                     });
                                 });
                             }));
-                        }),
+                        }, ["positive"]),
                     ),
                 AssetTemplates.assetList(assetList),
             ).build();

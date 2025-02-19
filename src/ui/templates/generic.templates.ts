@@ -1,5 +1,5 @@
-import {closeModal, newId} from "../classes/ui.js";
-import {createPriceFromCents, parsePrice} from "../classes/currency.js";
+import {closeModal, newId} from "../classes/ui";
+import {createPriceFromCents, parsePrice} from "../classes/currency";
 import {InputType} from "node:zlib";
 import {AnyNode, create, ifjs, signalMap, StringOrSignal, TypeOrSignal} from "../lib/fjsc/src/f2";
 import {compute, Signal, signal} from "../lib/fjsc/src/signals";
@@ -7,75 +7,24 @@ import {Tag} from "../../models/Tag";
 import {Callback, target} from "../classes/types";
 import {ColoredTag} from "../../models/uiExtensions/ColoredTag";
 import {tagList} from "../classes/store";
+import {FJSC} from "../lib/fjsc";
 
 export class GenericTemplates {
     static input<T>(type: InputType, name: string, value: any, placeholder: StringOrSignal, label: StringOrSignal, id: any, classes: StringOrSignal[] = [],
                  onchange: Callback<[T]> = () => {}, oninput: Callback<[Event]> = () => {}, attributes: StringOrSignal[] = [], required = false) {
-        const validate = () => {
-            const el = document.getElementById(id) as HTMLInputElement;
-            if (el.required) {
-                if (!el.value || el.value === "") {
-                    el.classList.add("invalid");
-                    el.title = `${label} is required`;
-                } else {
-                    el.classList.remove("invalid");
-                    el.title = label;
-                }
-            }
-        }
-
-        const input = create("input")
-            .type(type)
-            .name(name)
-            .value(value)
-            .placeholder(placeholder)
-            .id(id)
-            .attributes(...attributes)
-            .onchange(e => {
-                if (type === "checkbox") {
-                    onchange(target(e).checked as unknown as T);
-                    return;
-                }
-                onchange(target(e).value as unknown as T);
-            })
-            .onclick(e => {
-                if (type === "datetime-local") {
-                    // @ts-ignore
-                    e.currentTarget.showPicker();
-                }
-            })
-            .onkeydown(e => {
-                validate();
-            })
-            .oninput(e => {
-                validate();
-                oninput(e);
-            });
-
-        if (required) {
-            input.attributes("required", "true");
-            setTimeout(validate, 100);
-        }
-
-        if (type === "checkbox") {
-            input.attributes("checked", value ? "true" : "false");
-        }
-
-        const labelAddition = required ? '*' : '';
-        const labelClass = type === "checkbox" ? "flex" : "flex-v";
-
-        return create("label")
-            .classes("flex-v", ...classes, required ? "required" : "_")
-            .for(name)
-            .text(label + labelAddition)
-            .children(
-                create("div")
-                    .classes(labelClass)
-                    .children(
-                        input.build(),
-                        ifjs(type === "checkbox", create("span").text(placeholder).build()),
-                    ).build(),
-            ).build();
+        return FJSC.input<T>({
+            type,
+            name,
+            value,
+            placeholder,
+            label,
+            id,
+            classes,
+            onchange,
+            oninput,
+            attributes,
+            required
+        });
     }
 
     static icon(icon: StringOrSignal, classes: StringOrSignal[] = [], title = "", tag = "span") {
@@ -101,17 +50,6 @@ export class GenericTemplates {
             .onclick(onclick)
             .children(
                 GenericTemplates.icon(icon, iconClasses),
-                ifjs(text, create("span")
-                    .text(text)
-                    .build()),
-            ).build();
-    }
-
-    static infoText(icon: StringOrSignal, text: StringOrSignal, classes: StringOrSignal[] = [], iconClasses: StringOrSignal[] = []) {
-        return create("div")
-            .classes("flex", "info-pill", ...classes)
-            .children(
-                ifjs(icon, GenericTemplates.icon(icon, iconClasses)),
                 ifjs(text, create("span")
                     .text(text)
                     .build()),
@@ -239,41 +177,6 @@ export class GenericTemplates {
                         }, ["negative"])
                     ).build()
             ).build();
-    }
-
-    static collapsible(text: StringOrSignal, content: AnyNode|AnyNode[], classes: StringOrSignal[] = [], open = false) {
-        const uniqueId = newId();
-        const toggled = signal(open);
-        const iconClass = compute(on => on ? "rot90" : "rot0", toggled);
-        let contentElement;
-
-        contentElement = create("div")
-            .classes("collapsible-content")
-            .id(uniqueId)
-            .children(content)
-            .build();
-
-        const details = create("details")
-            .classes("collapsible", "flex-v", ...classes)
-            .children(
-                create("summary")
-                    .classes("collapsible-header", "flex", "align-center")
-                    .onclick(() => {
-                        toggled.value = !toggled.value;
-                    })
-                    .children(
-                        GenericTemplates.icon("expand_circle_right", [iconClass]),
-                        create("span")
-                            .classes("collapsible-title")
-                            .text(text)
-                            .build()
-                    ).build(),
-                contentElement
-            ).build() as HTMLDetailsElement;
-        if (open) {
-            details.open = true;
-        }
-        return details;
     }
 
     static textArea(value: any, label: StringOrSignal, id: StringOrSignal, oninput: Callback<[string]>) {
