@@ -44,7 +44,7 @@ export class GenericTemplates {
             .build();
     }
 
-    static buttonWithIcon(icon: StringOrSignal, text: StringOrSignal, onclick: Callback<[]>, classes: StringOrSignal[] = [], iconClasses: StringOrSignal[] = []) {
+    static buttonWithIcon(icon: StringOrSignal, text: StringOrSignal, onclick: Callback<[]>, classes: StringOrSignal[] = [], iconClasses: StringOrSignal[] = [], hotkey: StringOrSignal = null) {
         return create("button")
             .classes("flex", ...classes)
             .onclick(onclick)
@@ -52,6 +52,10 @@ export class GenericTemplates {
                 GenericTemplates.icon(icon, iconClasses),
                 ifjs(text, create("span")
                     .text(text)
+                    .build()),
+                ifjs(hotkey, create("kbd")
+                    .classes("hotkey")
+                    .text(hotkey)
                     .build()),
             ).build();
     }
@@ -180,52 +184,24 @@ export class GenericTemplates {
     }
 
     static textArea(value: any, label: StringOrSignal, id: StringOrSignal, oninput: Callback<[string]>) {
-        return create("label")
-            .classes("flex-v", "full-width")
-            .for(id)
-            .children(
-                ifjs(label, create("span")
-                    .text(label)
-                    .build()),
-                create("textarea")
-                    .classes("full-width")
-                    .name(id)
-                    .id(id)
-                    .oninput((e) => {
-                        oninput(target(e).value);
-                    })
-                    .value(value)
-                    .build()
-            ).build();
+        return FJSC.textarea({
+            classes: ["full-width"],
+            value,
+            label,
+            id,
+            oninput,
+        });
     }
 
     static toggle(text: StringOrSignal, checked: TypeOrSignal<boolean> = false, callback: Callback<[boolean]> = () => {
     }, extraClasses: StringOrSignal[] = [], id: StringOrSignal = null) {
-        return create("label")
-            .classes("flex-v", ...extraClasses)
-            .for(id)
-            .children(
-                create("span")
-                    .classes("toggle-text")
-                    .text(text)
-                    .build(),
-                create("input")
-                    .type("checkbox")
-                    .classes("hidden", "slider")
-                    .id(id)
-                    .checked(checked)
-                    .onclick(e => {
-                        callback(target(e).checked);
-                    })
-                    .build(),
-                create("div")
-                    .classes("toggle-container", "align-center")
-                    .children(
-                        create("span")
-                            .classes("toggle-slider")
-                            .build()
-                    ).build(),
-            ).build();
+        return FJSC.toggle({
+            classes: [...extraClasses],
+            text,
+            checked,
+            id,
+            onchange: callback,
+        });
     }
 
     static inlineToggle(text: StringOrSignal, checked = false, callback: Callback<[boolean]> = () => {}, extraClasses: StringOrSignal[] = [], id: StringOrSignal = null) {
@@ -297,6 +273,7 @@ export class GenericTemplates {
             .children(
                 signalMap<Tag>(values, create("div").classes("flex"), (value, index) => {
                     const optionColor = coloredOptions.value.find(option => option.id === value.id)?.color ?? "blue";
+
                     return GenericTemplates.tag(value, signal(optionColor), () => {
                         values.value = values.value.filter(v => v.id !== value.id);
                         onChange(values.value);
@@ -346,7 +323,7 @@ export class GenericTemplates {
         const actualColor = compute(color => `var(--tag-${color})`, color);
 
         return create("div")
-            .classes("tag")
+            .classes("tag", "flex")
             .styles("background-color", actualColor)
             .onclick(() => {
                 clickCallback(value);
@@ -355,7 +332,11 @@ export class GenericTemplates {
                 create("span")
                     .text(value.name)
                     .build(),
-                ifjs(clickCallback, GenericTemplates.icon("close")),
+                ifjs(clickCallback, create("div")
+                    .classes("tag-icon")
+                    .children(
+                        GenericTemplates.icon("close")
+                    ).build()),
             ).build();
     }
 
@@ -528,7 +509,7 @@ export class GenericTemplates {
         const price = compute(priceInCents => createPriceFromCents(priceInCents), priceInCents);
 
         return create("label")
-            .classes("flex-v", ...classes)
+            .classes("flex-v", "fjsc", ...classes)
             .text(label)
             .children(
                 create("span")

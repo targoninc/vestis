@@ -12,8 +12,7 @@ import {compute, Signal} from "../lib/fjsc/src/signals";
 import {ToastType} from "../enums/ToastType";
 import {assetList, jobList, setList} from "../classes/store";
 import {Job} from "../../models/Job";
-import {AssetSet} from "../../models/AssetSet";
-import {Asset} from "../../models/Asset";
+import {newAsset, newSet} from "../classes/actions";
 
 export class LayoutTemplates {
     static app(activePage: Signal<string>) {
@@ -27,14 +26,14 @@ export class LayoutTemplates {
 
     static topBar(activePage: Signal<string>) {
         return create("div")
-            .classes("flex", "panel")
+            .classes("flex")
             .children(
-                pages.map((page: Page) => {
+                pages.map((page: Page, i: number) => {
                     const active = compute((val): string => val === page.name ? "active" : "_", activePage);
 
                     return GenericTemplates.buttonWithIcon(page.icon, page.title, () => {
                         activePage.value = page.name;
-                    }, ["navigation-button", active]);
+                    }, ["navigation-button", active], [], (i + 1).toString());
                 })
             ).build();
     }
@@ -58,21 +57,8 @@ export class LayoutTemplates {
             .children(
                 create("div")
                     .classes("flex")
-                    .children(
-                        GenericTemplates.buttonWithIcon("add", "New asset", () => {
-                            createModal(AssetTemplates.assetForm({}, "New asset", (data, done) => {
-                                Api.createAsset(data).then(() => {
-                                    Api.getAssets().then(assetsResponse => {
-                                        if (assetsResponse.success) {
-                                            toast(`Asset ${data.manufacturer}/${data.model} added`, null, ToastType.positive);
-                                            assetList.value = assetsResponse.data as Asset[];
-                                        }
-                                        done();
-                                    });
-                                });
-                            }));
-                        }, ["positive"]),
-                    ),
+                    .children(GenericTemplates.buttonWithIcon("add", "New asset", newAsset, ["positive"]))
+                    .build(),
                 AssetTemplates.assetList(assetList),
             ).build();
     }
@@ -83,21 +69,8 @@ export class LayoutTemplates {
             .children(
                 create("div")
                     .classes("flex")
-                    .children(
-                        GenericTemplates.buttonWithIcon("add", "Add set", () => {
-                            createModal(SetTemplates.setForm({}, "Add set", (data, done) => {
-                                Api.createSet(data).then(() => {
-                                    Api.getSets().then(setsResponse => {
-                                        if (setsResponse.success) {
-                                            toast(`Set ${data.setName} added`, null, ToastType.positive);
-                                            setList.value = setsResponse.data as AssetSet[];
-                                        }
-                                        done();
-                                    });
-                                });
-                            }));
-                        }),
-                    ),
+                    .children(GenericTemplates.buttonWithIcon("add", "New set", newSet, ["positive"]))
+                    .build(),
                 SetTemplates.setList(setList),
             ).build();
     }

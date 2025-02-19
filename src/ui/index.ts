@@ -1,13 +1,16 @@
 import {LayoutTemplates} from "./templates/layout.templates";
-import {toast} from "./classes/ui";
+import {closeModal, toast} from "./classes/ui";
 import {activePage, assetList, currentCheckout, initializeStore, scannerBuffer} from "./classes/store";
 import {ToastType} from "./enums/ToastType";
 
 import "../styles/reset.css";
+import "../ui/lib/fjsc/src/fjs-components.css";
 import "../styles/index.css";
 import "../styles/fonts.css";
 import "../styles/classes.css";
 import {pages} from "./classes/pages";
+import {target} from "./classes/types";
+import {PageShortcuts} from "./enums/PageShortcuts";
 
 initializeStore();
 
@@ -18,7 +21,13 @@ content.appendChild(app);
 const TIMEOUT = 50;
 let lastKeydown = 0;
 
+const blockShortcuts = ["INPUT", "TEXTAREA", "SELECT"];
+
 document.addEventListener("keydown", (e) => {
+    if (blockShortcuts.includes(target(e).tagName)) {
+        return;
+    }
+
     let buffer = scannerBuffer.value;
     if (!isNaN(parseInt(e.key))) {
         if (Date.now() - lastKeydown > TIMEOUT) {
@@ -62,11 +71,24 @@ document.addEventListener("keydown", (e) => {
             }
             toast("Added asset to checkout.", null, ToastType.positive);
             scannerBuffer.value = "";
-        } else {
-            const isNumber = e.key.match(/^[0-9]+$/);
-            if (isNumber) {
-                activePage.value = pages.find((p, i) => (i + 1).toString() === e.key)?.name ?? "checkout";
+            return;
+        }
+    }
+
+    const isNumber = e.key.match(/^[0-9]+$/);
+    if (isNumber) {
+        activePage.value = pages.find((p, i) => (i + 1).toString() === e.key)?.name ?? "checkout";
+    } else {
+        const pageShortcuts = PageShortcuts[activePage.value];
+        if (pageShortcuts) {
+            const shortcut = pageShortcuts.find(s => s.key === e.key);
+            if (shortcut) {
+                shortcut.function();
             }
         }
+    }
+
+    if (e.key === "Escape") {
+        closeModal();
     }
 });

@@ -244,29 +244,19 @@ export class AssetTemplates {
         const dayRate = compute(val => DayRateCalculator.calculateDayRate(val.dayRate, val.priceInCents), data);
         const description = compute(val => val.description, data);
         const count = compute(val => val.count, data);
-        const invalid = compute(d => {
+        const error = compute(d => {
             if (d.manufacturer === "" || d.model === "") {
-                return true;
+                return "Manufacturer and model are required.";
             }
 
             if (d.isUnique && d.uniqueString === "") {
-                return true;
+                return "Unique string is required.";
             }
 
-            return false;
+            return null;
         }, data);
-        const submitClass = signal("disabled");
         const loading = signal(false);
-        const validate = () => {
-            if (loading.value || invalid.value) {
-                submitClass.value = "disabled";
-            } else {
-                submitClass.value = "_";
-            }
-        };
-        invalid.subscribe(validate);
-        loading.subscribe(validate);
-        validate();
+        const submitClass = compute((l, e) => l || e ? "disabled" : "_", loading, error);
 
         return create("div")
             .classes("flex-v")
@@ -292,20 +282,20 @@ export class AssetTemplates {
                         ifjs(typeIcon, GenericTemplates.icon(typeIcon, ["type-icon", type]))
                     ).build(),
                 create("div")
-                    .classes("flex", "align-center")
+                    .classes("flex")
                     .children(
                         GenericTemplates.input<string>("text", "manufacturer", manufacturer, "Company", "Manufacturer", "manufacturer", [], (newValue) => {
                             data.value = {
                                 ...data.value,
                                 manufacturer: newValue ?? "",
                             };
-                        }),
+                        }, () => {}, [], true),
                         GenericTemplates.input<string>("text", "model", model, "Model", "Model", "model", [], (newValue) => {
                             data.value = {
                                 ...data.value,
                                 model: newValue ?? "",
                             };
-                        }),
+                        }, () => {}, [], true),
                         GenericTemplates.input<string>("text", "serialNumber", serialNumber, "Serial", "Serial", "serialNumber", [], (newValue) => {
                             data.value = {
                                 ...data.value,
@@ -323,15 +313,15 @@ export class AssetTemplates {
                             };
                         }),
                     ).build(),
+                GenericTemplates.toggle("Unique", isUnique, (newValue) => {
+                    data.value = {
+                        ...data.value,
+                        isUnique: newValue ? 1 : 0,
+                    };
+                }),
                 create("div")
                     .classes("flex", "align-center")
                     .children(
-                        GenericTemplates.toggle("Unique", isUnique, (newValue) => {
-                            data.value = {
-                                ...data.value,
-                                isUnique: newValue ? 1 : 0,
-                            };
-                        }),
                         GenericTemplates.input<string>("text", "uniqueString", uniqueString, "Unique String", "Unique String", "uniqueString", [], (newValue) => {
                             data.value = {
                                 ...data.value,
@@ -362,7 +352,7 @@ export class AssetTemplates {
                         }),
                         GenericTemplates.priceDisplay(dayRate, "Day rate")
                     ).build(),
-                create("h2")
+                create("h3")
                     .text("Tags")
                     .build(),
                 GenericTemplates.tagList(data, newTags => {
@@ -371,6 +361,10 @@ export class AssetTemplates {
                         tags: newTags,
                     };
                 }),
+                ifjs(error, create("div")
+                    .classes("error")
+                    .text(error)
+                    .build()),
                 create("div")
                     .classes("flex", "align-center")
                     .children(

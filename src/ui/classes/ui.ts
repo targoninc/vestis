@@ -21,7 +21,7 @@ export function toasts(): HTMLElement {
 export function toast(message: string, coordinates: null | {
     x: number;
     y: number;
-} = null, type: ToastType = ToastType.info, timeout: number = 5) {
+} = null, type: ToastType = ToastType.info, timeout = 5) {
     const toast = create("div")
         .classes("toast", type)
         .children(
