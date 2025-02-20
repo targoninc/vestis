@@ -8,6 +8,8 @@ import {SetTemplates} from "../templates/set.templates";
 import {AssetSet} from "../../models/AssetSet";
 import {JobTemplates} from "../templates/job.templates";
 import {Job} from "../../models/Job";
+import {GenericTemplates} from "../templates/generic.templates";
+import {create} from "../lib/fjsc/src/f2";
 
 export function newAsset() {
     createModal(AssetTemplates.assetForm({}, "New asset", (data, done) => {
@@ -33,6 +35,36 @@ export function newSet() {
                 }
                 done();
             });
+        });
+    }));
+}
+
+export function editSet(set: AssetSet) {
+    createModal(SetTemplates.setForm(set, "Edit set", (data, done) => {
+        Api.updateSet(set.id, data).then(() => {
+            Api.getSets().then(setsResponse => {
+                if (setsResponse.success) {
+                    toast(`Set ${data.setName} updated`, null, ToastType.positive);
+                    setList.value = setsResponse.data as AssetSet[];
+                }
+                done();
+            });
+        });
+    }));
+}
+
+export function deleteSet(set: AssetSet) {
+    createModal(GenericTemplates.confirmModalWithContent("Delete set", create("div")
+        .classes("flex-v")
+        .children(
+            create("p")
+                .text(`Are you sure you want to delete the following set?`)
+                .build(),
+            GenericTemplates.propertyList(set)
+        ).build(), "Yes", "No", () => {
+        Api.deleteSetById(set.id).then(() => {
+            toast(`Set ${set.setName} deleted`, null, ToastType.positive);
+            setList.value = setList.value.filter(s => s.id !== set.id);
         });
     }));
 }

@@ -9,10 +9,10 @@ import {compute, signal, Signal} from "../lib/fjsc/src/signals";
 import {create, ifjs, signalMap, StringOrSignal} from "../lib/fjsc/src/f2";
 import {ToastType} from "../enums/ToastType";
 import {assetList, setList} from "../classes/store";
-import {newSet} from "../classes/actions";
+import {deleteSet, editSet, newSet} from "../classes/actions";
 
 export class SetTemplates {
-    static setList(setList: Signal<AssetSet[]>) {
+    static setList(setList: Signal<AssetSet[]>, selectedSetId: Signal<string>) {
         const headers = [
             {
                 headerName: "Set name",
@@ -62,13 +62,19 @@ export class SetTemplates {
                                         headers.map(header => GenericTemplates.tableListHeader(header.headerName, header.propertyName, activeSortHeader, setList))
                                     ).build(),
                             ).build(),
-                        signalMap<AssetSet>(setList, create("tbody"), SetTemplates.set)
+                        signalMap<AssetSet>(filteredAssetList, create("tbody"), s => SetTemplates.set(s, selectedSetId))
                     ).build(),
             ).build();
     }
 
-    static set(set: AssetSet) {
+    static set(set: AssetSet, selectedSetId: Signal<string>) {
+        const activeClass = compute((id): string => id === set.id ? "active" : "_", selectedSetId);
+
         return create("tr")
+            .classes("clickable", activeClass)
+            .onclick(() => {
+                selectedSetId.value = set.id;
+            })
             .children(
                 create("td")
                     .text(set.setName)
@@ -87,34 +93,8 @@ export class SetTemplates {
         return create("div")
             .classes("flex")
             .children(
-                GenericTemplates.buttonWithIcon("edit", "Edit", () => {
-                    createModal(SetTemplates.setForm(set, "Edit set", (data, done) => {
-                        Api.updateSet(set.id, data).then(() => {
-                            Api.getSets().then(setsResponse => {
-                                if (setsResponse.success) {
-                                    toast(`Set ${data.setName} updated`, null, ToastType.positive);
-                                    setList.value = setsResponse.data as AssetSet[];
-                                }
-                                done();
-                            });
-                        });
-                    }));
-                }),
-                GenericTemplates.buttonWithIcon("delete", "Delete", () => {
-                    createModal(GenericTemplates.confirmModalWithContent("Delete set", create("div")
-                        .classes("flex-v")
-                        .children(
-                            create("p")
-                                .text(`Are you sure you want to delete the following set?`)
-                                .build(),
-                            GenericTemplates.propertyList(set)
-                        ).build(), "Yes", "No", () => {
-                        Api.deleteSetById(set.id).then(() => {
-                            toast(`Set ${set.setName} deleted`, null, ToastType.positive);
-                            setList.value = setList.value.filter(s => s.id !== set.id);
-                        });
-                    }));
-                }, ["negative"]),
+                GenericTemplates.buttonWithIcon("edit", "Edit", () => editSet(set)),
+                GenericTemplates.buttonWithIcon("delete", "Delete", () => deleteSet(set), ["negative"]),
             ).build();
     }
 
@@ -169,7 +149,7 @@ export class SetTemplates {
             ).build();
     }
 
-    static setForm(set: Partial<AssetSet>, title: StringOrSignal, onSubmit: Callback<[AssetSet, any]> = (data, done) => {}) {
+    static setForm(set: Partial<AssetSet>, title: StringOrSignal, onSubmit: Callback<[AssetSet, any]> = (data, done) => {}, isModal = true) {
         const data = signal<AssetSet>({
             setName: "",
             assets: [],
@@ -252,7 +232,9 @@ export class SetTemplates {
                             loading.value = true;
                             onSubmit(data.value, () => {
                                 loading.value = false;
-                                closeModal();
+                                if (isModal) {
+                                    closeModal();
+                                }
                             });
                         }, ["positive", submitClass]),
                         ifjs(loading, GenericTemplates.spinner()),
@@ -318,6 +300,21 @@ export class SetTemplates {
     }
 
     static setListWithQuantity(sets: Signal<AssetSet[]>, onRemoveSet: Callback<[AssetSet]>, onQuantityChange: Callback<[string, number]>) {
+        const headers = [
+            {
+                headerName: "Set name",
+                property: "setName",
+            },
+            {
+                headerName: "Assets in set",
+                property: (s: AssetSet) => s.assets.length,
+            },
+            {
+                headerName: "Actions",
+                property: null,
+            },
+        ];
+        const activeSortHeader = signal(null);
         const search = signal("");
         const filteredSets = signal([]);
         const filterSets = () => {
@@ -346,15 +343,7 @@ export class SetTemplates {
                             .children(
                                 create("tr")
                                     .children(
-                                        create("th")
-                                            .text("Name")
-                                            .build(),
-                                        create("th")
-                                            .text("Assets in set")
-                                            .build(),
-                                        create("th")
-                                            .text("Actions")
-                                            .build(),
+                                        headers.map(header => GenericTemplates.tableListHeader(header.headerName, header.property, activeSortHeader, setList))
                                     ).build(),
                             ).build(),
                         signalMap<AssetSet>(filteredSets, create("tbody"), set => {
@@ -380,5 +369,26 @@ export class SetTemplates {
                         }, ["negative"]),
                     ).build(),
             ).build();
+    }
+
+    static setCard(selectedSet: Signal<AssetSet>) {
+        const form = compute(set => {
+            return SetTemplates.setForm(set, "Edit set", (data, done) => {
+                Api.updateSet(set.id, data).then(() => {
+                    Api.getSets().then(setsResponse => {
+                        if (setsResponse.success) {
+                            toast(`Set ${data.setName} updated`, null, ToastType.positive);
+                            setList.value = setsResponse.data as AssetSet[];
+                        }
+                        done();
+                    });
+                });
+            }, false);
+        }, selectedSet);
+
+        return create("div")
+            .classes("flex-v", "bordered-panel", "flex-grow")
+            .children(form)
+            .build();
     }
 }

@@ -380,11 +380,11 @@ export class GenericTemplates {
             ).build();
     }
 
-    static tableListHeader(headerName: string, propertyName: string, activeSortHeader: Signal<string>, listSignal: Signal<any[]>) {
+    static tableListHeader(headerName: string, property: string|Function, activeSortHeader: Signal<string>, listSignal: Signal<any[]>) {
         const currentSortType = signal("desc");
         const headerNameFull = signal(headerName);
         const getHeaderNameFull = () => {
-            if (activeSortHeader.value && activeSortHeader.value === propertyName) {
+            if (activeSortHeader.value && activeSortHeader.value === headerName) {
                 headerNameFull.value = `${headerName} ${currentSortType.value === "asc" ? "▲" : "▼"}`;
             } else {
                 headerNameFull.value = headerName;
@@ -398,30 +398,39 @@ export class GenericTemplates {
             .classes("clickable")
             .text(headerNameFull)
             .onclick(() => {
-                activeSortHeader.value = propertyName;
+                activeSortHeader.value = headerName;
                 if (currentSortType.value === "asc") {
                     currentSortType.value = "desc";
                 } else {
                     currentSortType.value = "asc";
                 }
                 listSignal.value = listSignal.value.sort((a, b) => {
-                    if (currentSortType.value === "asc") {
-                        if (!a[propertyName] || !b[propertyName]) {
-                            return 0;
-                        }
-                        if (a[propertyName].constructor === String) {
-                            return a[propertyName].localeCompare(b[propertyName]);
+                    if (property.constructor === String) {
+                        if (currentSortType.value === "asc") {
+                            if (!a[property] || !b[property]) {
+                                return 0;
+                            }
+                            if (a[property].constructor === String) {
+                                return a[property].localeCompare(b[property]);
+                            } else {
+                                return a[property] - b[property];
+                            }
                         } else {
-                            return a[propertyName] - b[propertyName];
+                            if (!b[property] || !a[property]) {
+                                return 0;
+                            }
+                            if (a[property].constructor === String) {
+                                return b[property].localeCompare(a[property]);
+                            } else {
+                                return b[property] - a[property];
+                            }
                         }
-                    } else {
-                        if (!b[propertyName] || !a[propertyName]) {
-                            return 0;
-                        }
-                        if (a[propertyName].constructor === String) {
-                            return b[propertyName].localeCompare(a[propertyName]);
+                    } else if (property.constructor === Function) {
+                        property = property as Function;
+                        if (currentSortType.value === "asc") {
+                            return property(a) - property(b);
                         } else {
-                            return b[propertyName] - a[propertyName];
+                            return property(b) - property(a);
                         }
                     }
                 });

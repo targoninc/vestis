@@ -10,6 +10,7 @@ import {compute, Signal} from "../lib/fjsc/src/signals";
 import {assetList, jobList, setList} from "../classes/store";
 import {newJob, newSet} from "../classes/actions";
 import {SettingsTemplates} from "./settings.templates";
+import {Asset} from "../../models/Asset";
 
 export class LayoutTemplates {
     static app(activePage: Signal<string>) {
@@ -40,7 +41,7 @@ export class LayoutTemplates {
             .classes("flex-v", "flex-grow", "main-panel", "panel")
             .children(
                 LayoutTemplates.renderComponentIfActive("home", activePage, LayoutTemplates.home(activePage)),
-                LayoutTemplates.renderComponentIfActive("assets", activePage, LayoutTemplates.assetsPage()),
+                LayoutTemplates.renderComponentIfActive("assets", activePage, LayoutTemplates.assetsPage(assetList)),
                 LayoutTemplates.renderComponentIfActive("sets", activePage, LayoutTemplates.setsPage()),
                 LayoutTemplates.renderComponentIfActive("jobs", activePage, LayoutTemplates.jobsPage()),
                 LayoutTemplates.renderComponentIfActive("calendar", activePage, CalendarTemplates.calendar(activePage)),
@@ -49,9 +50,9 @@ export class LayoutTemplates {
             ).build();
     }
 
-    static assetsPage() {
-        const selectedAssetId = compute(assetList => assetList.length > 0 ? assetList[0].id : null, assetList);
-        const selectedAsset = compute((list, id) => list.find(a => a.id === id), assetList, selectedAssetId);
+    static assetsPage(assets: Signal<Asset[]>) {
+        const selectedAssetId = compute(assetList => assetList?.length > 0 ? assetList[0].id : null, assets);
+        const selectedAsset = compute((list, id) => list?.find(a => a.id === id), assets, selectedAssetId);
 
         return create("div")
             .classes("flex")
@@ -59,17 +60,25 @@ export class LayoutTemplates {
                 create("div")
                     .classes("flex-v")
                     .children(
-                        AssetTemplates.assetList(assetList, selectedAssetId),
+                        AssetTemplates.assetList(assets, selectedAssetId),
                     ).build(),
                 ifjs(selectedAssetId, AssetTemplates.assetCard(selectedAsset)),
             ).build();
     }
 
     static setsPage() {
+        const selectedSetId = compute(setList => setList?.length > 0 ? setList[0].id : null, setList);
+        const selectedSet = compute((list, id) => list.find(s => s.id === id), setList, selectedSetId);
+
         return create("div")
-            .classes("flex-v")
+            .classes("flex")
             .children(
-                SetTemplates.setList(setList),
+                create("div")
+                    .classes("flex-v")
+                    .children(
+                        SetTemplates.setList(setList, selectedSetId),
+                    ).build(),
+                ifjs(selectedSetId, SetTemplates.setCard(selectedSet)),
             ).build();
     }
 

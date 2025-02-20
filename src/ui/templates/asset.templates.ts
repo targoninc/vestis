@@ -10,7 +10,7 @@ import {compute, Signal, signal} from "../lib/fjsc/src/signals";
 import {create, ifjs, signalMap} from "../lib/fjsc/src/f2";
 import {ToastType} from "../enums/ToastType";
 import {Tag} from "../../models/Tag";
-import { assetList } from "../classes/store";
+import {activePage, assetList} from "../classes/store";
 import {createPriceFromCents} from "../classes/currency";
 import {newAsset} from "../classes/actions";
 
@@ -19,31 +19,31 @@ export class AssetTemplates {
         const headers = [
             {
                 headerName: "Manufacturer",
-                propertyName: "manufacturer",
+                property: "manufacturer",
             },
             {
                 headerName: "Model",
-                propertyName: "model",
+                property: "model",
             },
             {
                 headerName: "Serial",
-                propertyName: "serialNumber",
+                property: "serialNumber",
             },
             {
                 headerName: "Unique",
-                propertyName: "isUnique",
+                property: "isUnique",
             },
             {
                 headerName: "Identifier",
-                propertyName: "uniqueString",
+                property: "uniqueString",
             },
             {
                 headerName: "Count",
-                propertyName: "count",
+                property: "count",
             },
             {
                 headerName: "Actions",
-                propertyName: null,
+                property: null,
             },
         ];
         const activeSortHeader = signal(null);
@@ -81,7 +81,7 @@ export class AssetTemplates {
                             .children(
                                 create("tr")
                                     .children(
-                                        headers.map(header => GenericTemplates.tableListHeader(header.headerName, header.propertyName, activeSortHeader, assetList))
+                                        headers.map(header => GenericTemplates.tableListHeader(header.headerName, header.property, activeSortHeader, assetList))
                                     ).build(),
                             ).build(),
                         signalMap(filteredAssetList, create("tbody"), (a: Asset) => AssetTemplates.asset(a, selectedAssetId))
