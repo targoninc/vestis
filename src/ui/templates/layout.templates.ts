@@ -4,15 +4,11 @@ import {Page, pages} from "../classes/pages";
 import {AssetTemplates} from "./asset.templates";
 import {CalendarTemplates} from "./calendar.templates";
 import {CheckoutTemplates} from "./checkout.templates";
-import {Api} from "../classes/api";
-import {createModal, toast} from "../classes/ui";
 import {SetTemplates} from "./set.templates";
 import {JobTemplates} from "./job.templates";
 import {compute, Signal} from "../lib/fjsc/src/signals";
-import {ToastType} from "../enums/ToastType";
 import {assetList, jobList, setList} from "../classes/store";
-import {Job} from "../../models/Job";
-import {newAsset, newJob, newSet} from "../classes/actions";
+import {newJob, newSet} from "../classes/actions";
 import {SettingsTemplates} from "./settings.templates";
 
 export class LayoutTemplates {
@@ -54,14 +50,18 @@ export class LayoutTemplates {
     }
 
     static assetsPage() {
+        const selectedAssetId = compute(assetList => assetList.length > 0 ? assetList[0].id : null, assetList);
+        const selectedAsset = compute((list, id) => list.find(a => a.id === id), assetList, selectedAssetId);
+
         return create("div")
-            .classes("flex-v")
+            .classes("flex")
             .children(
                 create("div")
-                    .classes("flex")
-                    .children(GenericTemplates.buttonWithIcon("add", "New asset", newAsset, ["positive"], [], "N"))
-                    .build(),
-                AssetTemplates.assetList(assetList),
+                    .classes("flex-v")
+                    .children(
+                        AssetTemplates.assetList(assetList, selectedAssetId),
+                    ).build(),
+                ifjs(selectedAssetId, AssetTemplates.assetCard(selectedAsset)),
             ).build();
     }
 
@@ -69,10 +69,6 @@ export class LayoutTemplates {
         return create("div")
             .classes("flex-v")
             .children(
-                create("div")
-                    .classes("flex")
-                    .children(GenericTemplates.buttonWithIcon("add", "New set", newSet, ["positive"], [], "N"))
-                    .build(),
                 SetTemplates.setList(setList),
             ).build();
     }

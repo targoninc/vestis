@@ -1,7 +1,7 @@
 import {GenericTemplates} from "./generic.templates";
 import {closeModal, createModal, toast} from "../classes/ui";
 import {Api} from "../classes/api";
-import {AssetTypes, Callback, target} from "../classes/types";
+import {AssetTypes, Callback} from "../classes/types";
 import {searchList} from "../classes/search";
 import {DayRateCalculator} from "../classes/dayRateCalculator";
 import {Asset} from "../../models/Asset";
@@ -11,9 +11,11 @@ import {create, ifjs, signalMap} from "../lib/fjsc/src/f2";
 import {ToastType} from "../enums/ToastType";
 import {Tag} from "../../models/Tag";
 import { assetList } from "../classes/store";
+import {createPriceFromCents} from "../classes/currency";
+import {newAsset} from "../classes/actions";
 
 export class AssetTemplates {
-    static assetList(assetList: Signal<Asset[]>) {
+    static assetList(assetList: Signal<Asset[]>, selectedAssetId: Signal<string>) {
         const headers = [
             {
                 headerName: "Manufacturer",
@@ -63,13 +65,14 @@ export class AssetTemplates {
         return create("div")
             .classes("flex-v", "flex-grow")
             .children(
-                create("span")
-                    .text("Assets")
-                    .build(),
                 create("div")
                     .classes("flex", "align-center")
                     .children(
                         GenericTemplates.input("text", "search", search, "Search", null, "search", ["full-width", "search-input"], (value: string) => search.value = value),
+                        create("div")
+                            .classes("flex")
+                            .children(GenericTemplates.buttonWithIcon("add", "New asset", newAsset, ["positive"], [], "N"))
+                            .build(),
                     ).build(),
                 create("table")
                     .classes("full-width")
@@ -81,7 +84,7 @@ export class AssetTemplates {
                                         headers.map(header => GenericTemplates.tableListHeader(header.headerName, header.propertyName, activeSortHeader, assetList))
                                     ).build(),
                             ).build(),
-                        signalMap(filteredAssetList, create("tbody"), AssetTemplates.asset)
+                        signalMap(filteredAssetList, create("tbody"), (a: Asset) => AssetTemplates.asset(a, selectedAssetId))
                     ).build(),
             ).build();
     }
@@ -132,8 +135,14 @@ export class AssetTemplates {
             ).build();
     }
 
-    static asset(asset: Asset) {
+    static asset(asset: Asset, selectedAssetId: Signal<string>) {
+        const activeClass = compute((id): string => id === asset.id ? "active" : "_", selectedAssetId);
+
         return create("tr")
+            .classes("clickable", activeClass)
+            .onclick(() => {
+                selectedAssetId.value = asset.id;
+            })
             .children(
                 create("td")
                     .text(asset.manufacturer)
@@ -550,6 +559,44 @@ export class AssetTemplates {
                         GenericTemplates.buttonWithIcon("delete", "Remove", () => {
                             onRemoveAsset(asset);
                         }, ["negative"]),
+                    ).build(),
+            ).build();
+    }
+
+    static assetCard(selectedAsset: Signal<Asset>) {
+        const name = compute(asset => `${asset?.manufacturer} ${asset?.model}`, selectedAsset);
+        const description = compute(asset => asset?.description, selectedAsset);
+        const serialNumber = compute(asset => asset?.serialNumber, selectedAsset);
+        const id = compute(asset => asset?.id, selectedAsset);
+        const type = compute(asset => asset?.type, selectedAsset);
+        const uniqueString = compute(asset => asset?.uniqueString, selectedAsset);
+        const priceInCents = compute(asset => createPriceFromCents(asset?.priceInCents), selectedAsset);
+        const dayRateFactor = compute(asset => asset?.dayRate, selectedAsset);
+        const dayRate = compute(asset => createPriceFromCents(DayRateCalculator.calculateDayRate(asset?.dayRate, asset?.priceInCents)), selectedAsset);
+        const count = compute(asset => asset?.count, selectedAsset);
+        const createdAt = compute(asset => new Date(asset?.createdAt).toLocaleString(), selectedAsset);
+        const updatedAt = compute(asset => new Date(asset?.updatedAt).toLocaleString(), selectedAsset);
+
+        return create("div")
+            .classes("flex-v", "bordered-panel", "flex-grow")
+            .children(
+                GenericTemplates.heading(2, name),
+                create("p")
+                    .text(description)
+                    .build(),
+                create("div")
+                    .classes("flex-v")
+                    .children(
+                        GenericTemplates.property("Database ID", id),
+                        GenericTemplates.property("Type", type),
+                        GenericTemplates.property("Serial number", serialNumber),
+                        GenericTemplates.property("Unique string", uniqueString),
+                        GenericTemplates.property("Retail price", priceInCents),
+                        GenericTemplates.property("Day rate factor", dayRateFactor),
+                        GenericTemplates.property("Day rate", dayRate),
+                        GenericTemplates.property("Count", count),
+                        GenericTemplates.property("Created at", createdAt),
+                        GenericTemplates.property("Updated at", updatedAt),
                     ).build(),
             ).build();
     }

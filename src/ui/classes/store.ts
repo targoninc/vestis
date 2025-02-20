@@ -1,5 +1,5 @@
 import {Api} from "./api";
-import {signal} from "../lib/fjsc/src/signals";
+import {Signal, signal} from "../lib/fjsc/src/signals";
 import {Asset} from "../../models/Asset";
 import {AssetSet} from "../../models/AssetSet";
 import {Tag} from "../../models/Tag";

@@ -43,6 +43,12 @@ export class GenericTemplates {
             .build();
     }
 
+    static heading(level: number, text: StringOrSignal) {
+        return create(`h${level}`)
+            .text(text)
+            .build();
+    }
+
     static buttonWithIcon(icon: StringOrSignal, text: StringOrSignal, onclick: Callback<[]>, classes: StringOrSignal[] = [], iconClasses: StringOrSignal[] = [], hotkey: StringOrSignal = null) {
         return create("button")
             .classes("flex", ...classes)
@@ -148,19 +154,23 @@ export class GenericTemplates {
                         value = value.length + " properties";
                     }
 
-                    return create("div")
-                        .classes("flex", "space-between", "property")
-                        .children(
-                            create("span")
-                                .classes("property-key")
-                                .text(key)
-                                .build(),
-                            create("span")
-                                .classes("property-value")
-                                .text(value)
-                                .build(),
-                        ).build();
+                    return GenericTemplates.property(key, value);
                 })
+            ).build();
+    }
+
+    static property(key: StringOrSignal, value: StringOrSignal) {
+        return create("div")
+            .classes("flex", "space-between", "property")
+            .children(
+                create("span")
+                    .classes("property-key")
+                    .text(key)
+                    .build(),
+                create("span")
+                    .classes("property-value")
+                    .text(value)
+                    .build(),
             ).build();
     }
 
@@ -385,6 +395,7 @@ export class GenericTemplates {
         getHeaderNameFull();
 
         return create("th")
+            .classes("clickable")
             .text(headerNameFull)
             .onclick(() => {
                 activeSortHeader.value = propertyName;

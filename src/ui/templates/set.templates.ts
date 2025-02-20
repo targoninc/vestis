@@ -9,6 +9,7 @@ import {compute, signal, Signal} from "../lib/fjsc/src/signals";
 import {create, ifjs, signalMap, StringOrSignal} from "../lib/fjsc/src/f2";
 import {ToastType} from "../enums/ToastType";
 import {assetList, setList} from "../classes/store";
+import {newSet} from "../classes/actions";
 
 export class SetTemplates {
     static setList(setList: Signal<AssetSet[]>) {
@@ -45,13 +46,11 @@ export class SetTemplates {
         return create("div")
             .classes("flex-v", "flex-grow")
             .children(
-                create("span")
-                    .text("Sets")
-                    .build(),
                 create("div")
-                    .classes("flex", "align-center")
+                    .classes("flex")
                     .children(
                         GenericTemplates.input("text", "search", search, "Search", null, "search", ["full-width", "search-input"], (value: string) => search.value = value),
+                        GenericTemplates.buttonWithIcon("add", "New set", newSet, ["positive"], [], "N"),
                     ).build(),
                 create("table")
                     .classes("full-width")

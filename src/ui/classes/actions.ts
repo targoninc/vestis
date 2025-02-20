@@ -50,3 +50,10 @@ export function newJob() {
         });
     }));
 }
+
+export function focusSearch() {
+    const searchInput = document.querySelector("input[type=text][name=search]") as HTMLInputElement;
+    if (searchInput) {
+        searchInput.focus();
+    }
+}

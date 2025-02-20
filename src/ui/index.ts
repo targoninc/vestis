@@ -11,6 +11,7 @@ import "../styles/classes.css";
 import {pages} from "./classes/pages";
 import {target} from "./classes/types";
 import {PageShortcuts} from "./enums/PageShortcuts";
+import {focusSearch} from "./classes/actions";
 
 initializeStore();
 
@@ -85,6 +86,10 @@ document.addEventListener("keydown", (e) => {
             if (shortcut) {
                 shortcut.function();
             }
+        }
+
+        if (e.key === "f" && e.ctrlKey) {
+            focusSearch();
         }
     }
 

@@ -90,6 +90,10 @@ body {
     padding: 0;
 }
 
+p {
+    line-height: 1.5;
+}
+
 h1, h2, h3, h4, h5, h6 {
     color: var(--text);
     font-weight: 700;
@@ -396,18 +400,36 @@ th, td {
     padding: var(--gap-h) var(--gap-v);
     line-height: 1.5;
     text-align: left;
+    box-sizing: border-box;
+    border-left: 2px solid transparent;
+}
+
+th {
+    background-color: var(--bg-4);
 }
 
 td.header-name {
     text-wrap: nowrap;
 }
 
-table tr:nth-child(odd) {
+table tr {
+    background-color: var(--bg-3);
+}
+
+tr:hover td:first-child {
+    border-left: 2px solid var(--text-2);
+}
+
+tr.clickable, th.clickable {
+    cursor: pointer;
+}
+
+tr.clickable:hover {
     background-color: var(--bg-4);
 }
 
-table tr:nth-child(even) {
-    background-color: var(--bg-3);
+tr.active td {
+    background: var(--blue);
 }
 
 hr {
