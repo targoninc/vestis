@@ -4,7 +4,7 @@ import {AssetTemplates} from "./asset.templates";
 import {Api} from "../classes/api";
 import {searchList} from "../classes/search";
 import {AssetSet} from "../../models/AssetSet";
-import {Callback, target} from "../classes/types";
+import {Callback} from "../classes/types";
 import {compute, signal, Signal} from "../lib/fjsc/src/signals";
 import {create, ifjs, signalMap, StringOrSignal} from "../lib/fjsc/src/f2";
 import {ToastType} from "../enums/ToastType";
@@ -27,13 +27,32 @@ export class SetTemplates {
             },
         ];
         const activeSortHeader = signal(null);
+        const search = signal("");
+        const searchProperties = ["setName", "assets"];
+        const filteredAssetList = signal<AssetSet[]>([]);
+        const filterItems = () => {
+            if (search.value === "") {
+                filteredAssetList.value = setList.value;
+                return;
+            }
+            const searchValue = search.value.toLowerCase();
+            filteredAssetList.value = searchList(searchProperties, setList.value, searchValue);
+        };
+        search.subscribe(filterItems);
+        setList.subscribe(filterItems);
+        filterItems();
 
         return create("div")
             .classes("flex-v", "flex-grow", "main-panel", "panel")
             .children(
                 create("span")
-                    .text("Assets")
+                    .text("Sets")
                     .build(),
+                create("div")
+                    .classes("flex", "align-center")
+                    .children(
+                        GenericTemplates.input("text", "search", search, "Search", null, "search", ["full-width", "search-input"], (value: string) => search.value = value),
+                    ).build(),
                 create("table")
                     .classes("full-width")
                     .children(
@@ -44,9 +63,7 @@ export class SetTemplates {
                                         headers.map(header => GenericTemplates.tableListHeader(header.headerName, header.propertyName, activeSortHeader, setList))
                                     ).build(),
                             ).build(),
-                        signalMap<AssetSet>(setList, create("tbody"), set => {
-                            return SetTemplates.set(set);
-                        })
+                        signalMap<AssetSet>(setList, create("tbody"), SetTemplates.set)
                     ).build(),
             ).build();
     }
@@ -62,35 +79,43 @@ export class SetTemplates {
                     .build(),
                 create("td")
                     .children(
-                        GenericTemplates.buttonWithIcon("edit", "Edit", () => {
-                            createModal(SetTemplates.setForm(set, "Edit set", (data, done) => {
-                                Api.updateSet(set.id, data).then(() => {
-                                    Api.getSets().then(setsResponse => {
-                                        if (setsResponse.success) {
-                                            toast(`Set ${data.setName} updated`, null, ToastType.positive);
-                                            setList.value = setsResponse.data as AssetSet[];
-                                        }
-                                        done();
-                                    });
-                                });
-                            }));
-                        }),
-                        GenericTemplates.buttonWithIcon("delete", "Delete", () => {
-                            createModal(GenericTemplates.confirmModalWithContent("Delete set", create("div")
-                                .classes("flex-v")
-                                .children(
-                                    create("p")
-                                        .text(`Are you sure you want to delete the following set?`)
-                                        .build(),
-                                    GenericTemplates.propertyList(set)
-                                ).build(), "Yes", "No", () => {
-                                Api.deleteSetById(set.id).then(() => {
-                                    toast(`Set ${set.setName} deleted`, null, ToastType.positive);
-                                    setList.value = setList.value.filter(s => s.id !== set.id);
-                                });
-                            }));
-                        }, ["negative"]),
+                        SetTemplates.setActions(set)
                     ).build(),
+            ).build();
+    }
+
+    static setActions(set: AssetSet) {
+        return create("div")
+            .classes("flex")
+            .children(
+                GenericTemplates.buttonWithIcon("edit", "Edit", () => {
+                    createModal(SetTemplates.setForm(set, "Edit set", (data, done) => {
+                        Api.updateSet(set.id, data).then(() => {
+                            Api.getSets().then(setsResponse => {
+                                if (setsResponse.success) {
+                                    toast(`Set ${data.setName} updated`, null, ToastType.positive);
+                                    setList.value = setsResponse.data as AssetSet[];
+                                }
+                                done();
+                            });
+                        });
+                    }));
+                }),
+                GenericTemplates.buttonWithIcon("delete", "Delete", () => {
+                    createModal(GenericTemplates.confirmModalWithContent("Delete set", create("div")
+                        .classes("flex-v")
+                        .children(
+                            create("p")
+                                .text(`Are you sure you want to delete the following set?`)
+                                .build(),
+                            GenericTemplates.propertyList(set)
+                        ).build(), "Yes", "No", () => {
+                        Api.deleteSetById(set.id).then(() => {
+                            toast(`Set ${set.setName} deleted`, null, ToastType.positive);
+                            setList.value = setList.value.filter(s => s.id !== set.id);
+                        });
+                    }));
+                }, ["negative"]),
             ).build();
     }
 

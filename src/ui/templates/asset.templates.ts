@@ -220,8 +220,12 @@ export class AssetTemplates {
     }
 
     static assetForm(assetData: Partial<Asset>, title: string, onSubmit = (data: Partial<Asset>, done: any) => {}) {
-        const maxUniqueId = assetList.value.reduce((max: number, asset) => Math.max(max, parseInt(asset.uniqueString)), 0);
-        console.log(assetData);
+        const maxUniqueId = assetList.value.reduce((max: number, asset) => {
+            const number = parseInt(asset.uniqueString);
+            if (isNaN(number)) return max;
+
+            return Math.max(max, number);
+        }, 0);
         const data = signal<Partial<Asset> & { tags: Tag[] }>({
             type: AssetTypes.other.id,
             manufacturer: "",
