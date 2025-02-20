@@ -43,7 +43,7 @@ export class SetTemplates {
         filterItems();
 
         return create("div")
-            .classes("flex-v", "flex-grow", "main-panel", "panel")
+            .classes("flex-v", "flex-grow")
             .children(
                 create("span")
                     .text("Sets")

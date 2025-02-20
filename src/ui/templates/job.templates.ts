@@ -3,7 +3,7 @@ import {day} from "../classes/time";
 import {closeModal, createModal, toast} from "../classes/ui";
 import {Api} from "../classes/api";
 import {AssetTemplates} from "./asset.templates";
-import {SetTemplates} from "./set.templates.js";
+import {SetTemplates} from "./set.templates";
 import {AvailabilityCalculator} from "../classes/availabilityCalculator";
 import {compute, Signal, signal} from "../lib/fjsc/src/signals";
 import {Job} from "../../models/Job";
@@ -11,6 +11,7 @@ import {create, ifjs, signalMap, StringOrSignal} from "../lib/fjsc/src/f2";
 import {ToastType} from "../enums/ToastType";
 import {Callback} from "../classes/types";
 import {assetList, jobList, setList} from "../classes/store";
+import {searchList} from "../classes/search";
 
 export class JobTemplates {
     static jobForm(jobData: Partial<Job>, title: StringOrSignal, onSubmit: Callback<[Job, any]> = (data, done) => {
@@ -193,7 +194,6 @@ export class JobTemplates {
                                 ...data.value,
                                 name: newValue,
                             };
-                        }, () => {
                         }, [], true),
                     ).build(),
                 create("div")
@@ -220,7 +220,6 @@ export class JobTemplates {
                                 ...data.value,
                                 startTime: newValue,
                             };
-                        }, () => {
                         }, ["step", "1800"]),
                         GenericTemplates.input<number>("datetime-local", "endTime", endTime, "End time", "End time", "endTime", [], (newValue) => {
                             data.value = {
@@ -292,13 +291,32 @@ export class JobTemplates {
             },
         ];
         const activeSortHeader = signal(null);
+        const search = signal("");
+        const searchProperties = ["jobNumber", "contact", "name"];
+        const filteredList = signal<Job[]>([]);
+        const filterItems = () => {
+            if (search.value === "") {
+                filteredList.value = jobList.value;
+                return;
+            }
+            const searchValue = search.value.toLowerCase();
+            filteredList.value = searchList(searchProperties, jobList.value, searchValue);
+        };
+        search.subscribe(filterItems);
+        jobList.subscribe(filterItems);
+        filterItems();
 
         return create("div")
-            .classes("flex-v", "flex-grow", "main-panel", "panel")
+            .classes("flex-v", "flex-grow")
             .children(
                 create("span")
                     .text("Jobs")
                     .build(),
+                create("div")
+                    .classes("flex", "align-center")
+                    .children(
+                        GenericTemplates.input("text", "search", search, "Search", null, "search", ["full-width", "search-input"], (value: string) => search.value = value),
+                    ).build(),
                 create("table")
                     .classes("full-width")
                     .children(

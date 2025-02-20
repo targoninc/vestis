@@ -39,6 +39,8 @@
     --tag-padding: 0.3em 0.3em 0.3em 0.6em;
     --tab-padding: 0.6em 1.2em;
 
+    --fjsc-border-radius-small: var(--input-border-radius);
+
     --default-font-family: "Inter Tight", serif;
     --fjsc-font: var(--default-font-family);
     --mono-font: monospace;
