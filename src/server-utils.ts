@@ -6,6 +6,9 @@ import path from "path";
 import dotenv from "dotenv";
 import cors from "cors";
 import {DB} from "./api/db";
+import fs from "fs";
+import {Configuration} from "./models/Configuration";
+import {getConfig} from "./api/configuration";
 
 dotenv.config();
 
@@ -32,7 +35,8 @@ async function startServer(port: number = 48678) {
         res.send('Hello World');
     });
 
-    const db = new DB();
+    const config = getConfig();
+    const db = new DB(config.db_path);
     createEndpoints(app, db);
     StorageCache.ensurePath();
     app.listen(port, () => {

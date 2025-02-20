@@ -13,6 +13,7 @@ import {ToastType} from "../enums/ToastType";
 import {assetList, jobList, setList} from "../classes/store";
 import {Job} from "../../models/Job";
 import {newAsset, newSet} from "../classes/actions";
+import {SettingsTemplates} from "./settings.templates";
 
 export class LayoutTemplates {
     static app(activePage: Signal<string>) {
@@ -48,6 +49,7 @@ export class LayoutTemplates {
                 LayoutTemplates.renderComponentIfActive("jobs", activePage, LayoutTemplates.jobsPage()),
                 LayoutTemplates.renderComponentIfActive("calendar", activePage, CalendarTemplates.calendar(activePage)),
                 LayoutTemplates.renderComponentIfActive("checkout", activePage, CheckoutTemplates.checkout(activePage)),
+                LayoutTemplates.renderComponentIfActive("settings", activePage, SettingsTemplates.settings(activePage)),
             ).build();
     }
 

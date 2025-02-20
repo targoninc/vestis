@@ -34,5 +34,10 @@ export const pages: Page[] = [
         icon: "shopping_cart_checkout",
         title: "Checkout",
         name: "checkout"
+    },
+    {
+        icon: "settings",
+        title: "Settings",
+        name: "settings"
     }
 ]

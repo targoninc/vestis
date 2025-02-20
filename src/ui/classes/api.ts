@@ -3,6 +3,7 @@ import {Asset} from "../../models/Asset";
 import {Tag} from "../../models/Tag";
 import {AssetSet} from "../../models/AssetSet";
 import {Job} from "../../models/Job";
+import {Configuration} from "../../models/Configuration";
 
 export class Api extends ApiBase {
     static getAssets() {
@@ -72,5 +73,17 @@ export class Api extends ApiBase {
 
     static deleteJobById(id: string) {
         return this.delete(`/jobs/${id}`);
+    }
+
+    static getConfig() {
+        return this.get<Configuration>("/config");
+    }
+
+    static getConfigKey<T>(key: string) {
+        return this.get<T>(`/config/${key}`);
+    }
+
+    static setConfigKey(key: string, value: any) {
+        return this.put(`/config/${key}`, { value });
     }
 }

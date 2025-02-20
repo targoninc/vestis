@@ -6,8 +6,25 @@ import {CLI} from "./CLI";
 import {DB} from "./db";
 import {Application} from "express";
 import {AssetManagerDB} from "./assetManagerDb";
+import {getConfig, getConfigKey, setConfigKey} from "./configuration";
 
 export function createEndpoints(app: Application, db: DB) {
+    app.get('/config', async (req, res) => {
+        res.status(200).send(getConfig());
+    });
+
+    app.get('/config/:key', async (req, res) => {
+        const key = req.params.key;
+        res.status(200).send(getConfigKey(key));
+    });
+
+    app.put('/config/:key', async (req, res) => {
+        const key = req.params.key;
+        const value = req.body.value;
+        setConfigKey(key, value);
+        res.status(200).send(getConfigKey(key));
+    });
+
     app.post('/assets', async (req, res) => {
         const asset = req.body as Asset;
         CLI.log(`Creating asset ${asset.manufacturer}/${asset.model}`);

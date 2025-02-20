@@ -6,18 +6,18 @@ const sqlite3 = require('sqlite3').verbose();
 export class DB {
     private db: Database;
 
-    constructor() {
-        this.db = this.startDb();
+    constructor(db_path: string) {
+        this.db = this.startDb(db_path);
     }
 
-    startDb() {
-        const db = new sqlite3.Database(process.env.DB_PATH ?? ':memory:');
+    startDb(db_path: string) {
+        const db = new sqlite3.Database(db_path ?? ':memory:');
 
         db.serialize(() => {
             initializeTables(db);
             insertDefaultTags(db);
 
-            console.log('DB started at ' + process.env.DB_PATH);
+            console.log('DB started at ' + (db_path ?? ':memory:'));
         });
 
         return db;

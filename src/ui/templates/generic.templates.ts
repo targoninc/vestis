@@ -1,4 +1,4 @@
-import {closeModal, newId} from "../classes/ui";
+import {closeModal} from "../classes/ui";
 import {createPriceFromCents, parsePrice} from "../classes/currency";
 import {InputType} from "node:zlib";
 import {AnyNode, create, ifjs, signalMap, StringOrSignal, TypeOrSignal} from "../lib/fjsc/src/f2";
@@ -6,7 +6,7 @@ import {compute, Signal, signal} from "../lib/fjsc/src/signals";
 import {Tag} from "../../models/Tag";
 import {Callback, target} from "../classes/types";
 import {ColoredTag} from "../../models/uiExtensions/ColoredTag";
-import {tagList} from "../classes/store";
+import {configuration, tagList} from "../classes/store";
 import {FJSC} from "../lib/fjsc";
 
 export class GenericTemplates {
@@ -53,11 +53,17 @@ export class GenericTemplates {
                 ifjs(text, create("span")
                     .text(text)
                     .build()),
-                ifjs(hotkey, create("kbd")
-                    .classes("hotkey")
-                    .text(hotkey)
-                    .build()),
+                GenericTemplates.hotkey(hotkey),
             ).build();
+    }
+
+    static hotkey(hotkey: string) {
+        const show = compute(c => c.display_hotkeys === true && hotkey != null, configuration);
+
+        return ifjs(show, create("kbd")
+            .classes("hotkey")
+            .text(hotkey)
+            .build());
     }
 
     static spinner(circleCount = 4, delay = 0.2) {
