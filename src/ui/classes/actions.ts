@@ -10,6 +10,7 @@ import {JobTemplates} from "../templates/job.templates";
 import {Job} from "../../models/Job";
 import {GenericTemplates} from "../templates/generic.templates";
 import {create} from "../lib/fjsc/src/f2";
+import {ApiResponse} from "./api.base";
 
 export function newAsset() {
     createModal(AssetTemplates.assetForm({}, "New asset", (data, done) => {
@@ -21,6 +22,36 @@ export function newAsset() {
                 }
                 done();
             });
+        });
+    }));
+}
+
+export function editAsset(asset: Asset) {
+    createModal(AssetTemplates.assetForm(asset, "Edit asset", (data, done) => {
+        Api.updateAsset(asset.id, data).then(() => {
+            Api.getAssets().then((assetsResponse: ApiResponse<Asset[] | string>) => {
+                if (assetsResponse.success) {
+                    toast(`Asset ${data.manufacturer}/${data.model} updated`, null, ToastType.positive);
+                    assetList.value = assetsResponse.data as Asset[];
+                }
+                done();
+            });
+        });
+    }));
+}
+
+export function deleteAsset(asset: Partial<Asset>) {
+    createModal(GenericTemplates.confirmModalWithContent("Delete asset", create("div")
+        .classes("flex-v")
+        .children(
+            create("p")
+                .text(`Are you sure you want to delete the following asset?`)
+                .build(),
+            GenericTemplates.propertyList(asset)
+        ).build(), "Yes", "No", () => {
+        Api.deleteAssetByIdOrUniqueString(asset.id).then(() => {
+            toast(`Asset ${asset.manufacturer}/${asset.model} deleted`, null, ToastType.positive);
+            assetList.value = assetList.value.filter(a => a.id !== asset.id);
         });
     }));
 }
@@ -39,21 +70,7 @@ export function newSet() {
     }));
 }
 
-export function editSet(set: AssetSet) {
-    createModal(SetTemplates.setForm(set, "Edit set", (data, done) => {
-        Api.updateSet(set.id, data).then(() => {
-            Api.getSets().then(setsResponse => {
-                if (setsResponse.success) {
-                    toast(`Set ${data.setName} updated`, null, ToastType.positive);
-                    setList.value = setsResponse.data as AssetSet[];
-                }
-                done();
-            });
-        });
-    }));
-}
-
-export function deleteSet(set: AssetSet) {
+export function deleteSet(set: Partial<AssetSet>) {
     createModal(GenericTemplates.confirmModalWithContent("Delete set", create("div")
         .classes("flex-v")
         .children(

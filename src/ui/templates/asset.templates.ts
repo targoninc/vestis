@@ -1,5 +1,5 @@
 import {GenericTemplates} from "./generic.templates";
-import {closeModal, createModal, toast} from "../classes/ui";
+import {closeModal, toast} from "../classes/ui";
 import {Api} from "../classes/api";
 import {AssetTypes, Callback} from "../classes/types";
 import {searchList} from "../classes/search";
@@ -10,41 +10,36 @@ import {compute, Signal, signal} from "../lib/fjsc/src/signals";
 import {create, ifjs, signalMap} from "../lib/fjsc/src/f2";
 import {ToastType} from "../enums/ToastType";
 import {Tag} from "../../models/Tag";
-import {activePage, assetList} from "../classes/store";
-import {createPriceFromCents} from "../classes/currency";
-import {newAsset} from "../classes/actions";
+import {assetList} from "../classes/store";
+import {deleteAsset, newAsset} from "../classes/actions";
 
 export class AssetTemplates {
     static assetList(assetList: Signal<Asset[]>, selectedAssetId: Signal<string>) {
         const headers = [
             {
                 headerName: "Manufacturer",
-                property: "manufacturer",
+                propertyName: "manufacturer",
             },
             {
                 headerName: "Model",
-                property: "model",
+                propertyName: "model",
             },
             {
                 headerName: "Serial",
-                property: "serialNumber",
+                propertyName: "serialNumber",
             },
             {
                 headerName: "Unique",
-                property: "isUnique",
+                propertyName: "isUnique",
             },
             {
                 headerName: "Identifier",
-                property: "uniqueString",
+                propertyName: "uniqueString",
             },
             {
                 headerName: "Count",
-                property: "count",
-            },
-            {
-                headerName: "Actions",
-                property: null,
-            },
+                propertyName: "count",
+            }
         ];
         const activeSortHeader = signal(null);
         const search = signal("");
@@ -81,7 +76,7 @@ export class AssetTemplates {
                             .children(
                                 create("tr")
                                     .children(
-                                        headers.map(header => GenericTemplates.tableListHeader(header.headerName, header.property, activeSortHeader, assetList))
+                                        headers.map(header => GenericTemplates.tableListHeader(header.headerName, header.propertyName, activeSortHeader, assetList))
                                     ).build(),
                             ).build(),
                         signalMap(filteredAssetList, create("tbody"), (a: Asset) => AssetTemplates.asset(a, selectedAssetId))
@@ -161,46 +156,7 @@ export class AssetTemplates {
                     .build(),
                 create("td")
                     .text(asset.count)
-                    .build(),
-                create("td")
-                    .children(
-                        AssetTemplates.assetActions(asset)
-                    ).build(),
-            ).build();
-    }
-
-    static assetActions(asset: Asset) {
-        return create("div")
-            .classes("flex", "align-center")
-            .children(
-                GenericTemplates.buttonWithIcon("edit", "Edit", () => {
-                    createModal(AssetTemplates.assetForm(asset, "Edit asset", (data, done) => {
-                        Api.updateAsset(asset.id, data).then(() => {
-                            Api.getAssets().then((assetsResponse: ApiResponse<Asset[] | string>) => {
-                                if (assetsResponse.success) {
-                                    toast(`Asset ${data.manufacturer}/${data.model} updated`, null, ToastType.positive);
-                                    assetList.value = assetsResponse.data as Asset[];
-                                }
-                                done();
-                            });
-                        });
-                    }));
-                }),
-                GenericTemplates.buttonWithIcon("delete", "Delete", () => {
-                    createModal(GenericTemplates.confirmModalWithContent("Delete asset", create("div")
-                        .classes("flex-v")
-                        .children(
-                            create("p")
-                                .text(`Are you sure you want to delete the following asset?`)
-                                .build(),
-                            GenericTemplates.propertyList(asset)
-                        ).build(), "Yes", "No", () => {
-                        Api.deleteAssetByIdOrUniqueString(asset.id).then(() => {
-                            toast(`Asset ${asset.manufacturer}/${asset.model} deleted`, null, ToastType.positive);
-                            assetList.value = assetList.value.filter(a => a.id !== asset.id);
-                        });
-                    }));
-                }, ["negative"]),
+                    .build()
             ).build();
     }
 
@@ -228,7 +184,7 @@ export class AssetTemplates {
             ).build();
     }
 
-    static assetForm(assetData: Partial<Asset>, title: string, onSubmit = (data: Partial<Asset>, done: any) => {}) {
+    static assetForm(assetData: Partial<Asset>, title: string, onSubmit = (data: Partial<Asset>, done: any) => {}, isModal = true) {
         const maxUniqueId = assetList.value.reduce((max: number, asset) => {
             const number = parseInt(asset.uniqueString);
             if (isNaN(number)) return max;
@@ -389,9 +345,12 @@ export class AssetTemplates {
                             loading.value = true;
                             onSubmit(data.value, () => {
                                 loading.value = false;
-                                closeModal();
+                                if (isModal) {
+                                    closeModal();
+                                }
                             });
                         }, ["positive", submitClass]),
+                        ifjs(assetData && assetData.id, GenericTemplates.buttonWithIcon("delete", "Delete", () => deleteAsset(assetData), ["negative"])),
                         ifjs(loading, GenericTemplates.spinner()),
                     ).build()
             ).build();
@@ -564,40 +523,23 @@ export class AssetTemplates {
     }
 
     static assetCard(selectedAsset: Signal<Asset>) {
-        const name = compute(asset => `${asset?.manufacturer} ${asset?.model}`, selectedAsset);
-        const description = compute(asset => asset?.description, selectedAsset);
-        const serialNumber = compute(asset => asset?.serialNumber, selectedAsset);
-        const id = compute(asset => asset?.id, selectedAsset);
-        const type = compute(asset => asset?.type, selectedAsset);
-        const uniqueString = compute(asset => asset?.uniqueString, selectedAsset);
-        const priceInCents = compute(asset => createPriceFromCents(asset?.priceInCents), selectedAsset);
-        const dayRateFactor = compute(asset => asset?.dayRate, selectedAsset);
-        const dayRate = compute(asset => createPriceFromCents(DayRateCalculator.calculateDayRate(asset?.dayRate, asset?.priceInCents)), selectedAsset);
-        const count = compute(asset => asset?.count, selectedAsset);
-        const createdAt = compute(asset => new Date(asset?.createdAt).toLocaleString(), selectedAsset);
-        const updatedAt = compute(asset => new Date(asset?.updatedAt).toLocaleString(), selectedAsset);
+        const form = compute(asset => {
+            return AssetTemplates.assetForm(asset, "Edit asset", (data, done) => {
+                Api.updateAsset(asset.id, data).then(() => {
+                    Api.getAssets().then((assetsResponse: ApiResponse<Asset[] | string>) => {
+                        if (assetsResponse.success) {
+                            toast(`Asset ${data.manufacturer}/${data.model} updated`, null, ToastType.positive);
+                            assetList.value = assetsResponse.data as Asset[];
+                        }
+                        done();
+                    });
+                });
+            }, false);
+        }, selectedAsset);
 
         return create("div")
             .classes("flex-v", "bordered-panel", "flex-grow")
-            .children(
-                GenericTemplates.heading(2, name),
-                create("p")
-                    .text(description)
-                    .build(),
-                create("div")
-                    .classes("flex-v")
-                    .children(
-                        GenericTemplates.property("Database ID", id),
-                        GenericTemplates.property("Type", type),
-                        GenericTemplates.property("Serial number", serialNumber),
-                        GenericTemplates.property("Unique string", uniqueString),
-                        GenericTemplates.property("Retail price", priceInCents),
-                        GenericTemplates.property("Day rate factor", dayRateFactor),
-                        GenericTemplates.property("Day rate", dayRate),
-                        GenericTemplates.property("Count", count),
-                        GenericTemplates.property("Created at", createdAt),
-                        GenericTemplates.property("Updated at", updatedAt),
-                    ).build(),
-            ).build();
+            .children(form)
+            .build();
     }
 }

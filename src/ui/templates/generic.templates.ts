@@ -380,7 +380,7 @@ export class GenericTemplates {
             ).build();
     }
 
-    static tableListHeader(headerName: string, property: string|Function, activeSortHeader: Signal<string>, listSignal: Signal<any[]>) {
+    static tableListHeader(headerName: string, propertyName: string, activeSortHeader: Signal<string>, listSignal: Signal<any[]>) {
         const currentSortType = signal("desc");
         const headerNameFull = signal(headerName);
         const getHeaderNameFull = () => {
@@ -398,6 +398,10 @@ export class GenericTemplates {
             .classes("clickable")
             .text(headerNameFull)
             .onclick(() => {
+                if (!propertyName) {
+                    return;
+                }
+
                 activeSortHeader.value = headerName;
                 if (currentSortType.value === "asc") {
                     currentSortType.value = "desc";
@@ -405,32 +409,30 @@ export class GenericTemplates {
                     currentSortType.value = "asc";
                 }
                 listSignal.value = listSignal.value.sort((a, b) => {
-                    if (property.constructor === String) {
-                        if (currentSortType.value === "asc") {
-                            if (!a[property] || !b[property]) {
-                                return 0;
-                            }
-                            if (a[property].constructor === String) {
-                                return a[property].localeCompare(b[property]);
-                            } else {
-                                return a[property] - b[property];
-                            }
-                        } else {
-                            if (!b[property] || !a[property]) {
-                                return 0;
-                            }
-                            if (a[property].constructor === String) {
-                                return b[property].localeCompare(a[property]);
-                            } else {
-                                return b[property] - a[property];
-                            }
+                    let propA = a[propertyName];
+                    let propB = b[propertyName];
+                    if (propertyName.includes(".")) {
+                        propA = propertyName.split(".").reduce((obj, key) => obj[key], a);
+                        propB = propertyName.split(".").reduce((obj, key) => obj[key], b);
+                    }
+
+                    if (currentSortType.value === "asc") {
+                        if (!propA || !propB) {
+                            return 0;
                         }
-                    } else if (property.constructor === Function) {
-                        property = property as Function;
-                        if (currentSortType.value === "asc") {
-                            return property(a) - property(b);
+                        if (propA.constructor === String) {
+                            return propA.localeCompare(propB);
                         } else {
-                            return property(b) - property(a);
+                            return propA - propB;
+                        }
+                    } else {
+                        if (!propB || !propA) {
+                            return 0;
+                        }
+                        if (propA.constructor === String) {
+                            return propB.localeCompare(propA);
+                        } else {
+                            return propB - propA;
                         }
                     }
                 });

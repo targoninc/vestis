@@ -9,7 +9,7 @@ import {compute, signal, Signal} from "../lib/fjsc/src/signals";
 import {create, ifjs, signalMap, StringOrSignal} from "../lib/fjsc/src/f2";
 import {ToastType} from "../enums/ToastType";
 import {assetList, setList} from "../classes/store";
-import {deleteSet, editSet, newSet} from "../classes/actions";
+import {deleteSet, newSet} from "../classes/actions";
 
 export class SetTemplates {
     static setList(setList: Signal<AssetSet[]>, selectedSetId: Signal<string>) {
@@ -20,11 +20,7 @@ export class SetTemplates {
             },
             {
                 headerName: "Assets",
-                propertyName: null,
-            },
-            {
-                headerName: "Actions",
-                propertyName: null,
+                propertyName: "assets.length",
             },
         ];
         const activeSortHeader = signal(null);
@@ -82,19 +78,6 @@ export class SetTemplates {
                 create("td")
                     .text(set.assets.length)
                     .build(),
-                create("td")
-                    .children(
-                        SetTemplates.setActions(set)
-                    ).build(),
-            ).build();
-    }
-
-    static setActions(set: AssetSet) {
-        return create("div")
-            .classes("flex")
-            .children(
-                GenericTemplates.buttonWithIcon("edit", "Edit", () => editSet(set)),
-                GenericTemplates.buttonWithIcon("delete", "Delete", () => deleteSet(set), ["negative"]),
             ).build();
     }
 
@@ -237,6 +220,7 @@ export class SetTemplates {
                                 }
                             });
                         }, ["positive", submitClass]),
+                        ifjs(set && set.id, GenericTemplates.buttonWithIcon("delete", "Delete", () => deleteSet(set), ["negative"])),
                         ifjs(loading, GenericTemplates.spinner()),
                     ).build()
             ).build();
@@ -303,16 +287,12 @@ export class SetTemplates {
         const headers = [
             {
                 headerName: "Set name",
-                property: "setName",
+                propertyName: "setName",
             },
             {
                 headerName: "Assets in set",
-                property: (s: AssetSet) => s.assets.length,
-            },
-            {
-                headerName: "Actions",
-                property: null,
-            },
+                propertyName: "assets.length",
+            }
         ];
         const activeSortHeader = signal(null);
         const search = signal("");
@@ -343,7 +323,7 @@ export class SetTemplates {
                             .children(
                                 create("tr")
                                     .children(
-                                        headers.map(header => GenericTemplates.tableListHeader(header.headerName, header.property, activeSortHeader, setList))
+                                        headers.map(header => GenericTemplates.tableListHeader(header.headerName, header.propertyName, activeSortHeader, setList))
                                     ).build(),
                             ).build(),
                         signalMap<AssetSet>(filteredSets, create("tbody"), set => {
