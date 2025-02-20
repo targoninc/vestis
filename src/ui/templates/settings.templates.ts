@@ -32,7 +32,22 @@ export class SettingsTemplates {
                 create("h1")
                     .text("Settings")
                     .build(),
-                settings.map(s => SettingsTemplates.setting(s))
+                settings.map(s => SettingsTemplates.setting(s)),
+                create("p")
+                    .classes("align-center", "flex")
+                    .children(
+                        create("b")
+                            .text("Hint: "),
+                        create("span")
+                            .text("You can hit "),
+                        GenericTemplates.hotkey("Ctrl", true),
+                        create("span")
+                            .text(" + "),
+                        GenericTemplates.hotkey("F", true),
+                        create("span")
+                            .text(" to search on most pages.")
+                            .build(),
+                    ).build()
             ).build();
     }
 

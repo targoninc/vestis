@@ -62,8 +62,8 @@ export class GenericTemplates {
             ).build();
     }
 
-    static hotkey(hotkey: string) {
-        const show = compute(c => c.display_hotkeys === true && hotkey != null, configuration);
+    static hotkey(hotkey: string, alwaysDisplay = false) {
+        const show = compute(c => alwaysDisplay || (c.display_hotkeys === true && hotkey != null), configuration);
 
         return ifjs(show, create("kbd")
             .classes("hotkey")
