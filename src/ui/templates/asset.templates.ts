@@ -69,11 +69,7 @@ export class AssetTemplates {
                 create("div")
                     .classes("flex", "align-center")
                     .children(
-                        GenericTemplates.input("text", "search", search, "Search", "Search", "search", ["full-width", "search-input"], () => {}, (e: Event) => {
-                            setTimeout(() => {
-                                search.value = target(e).value;
-                            }, 0);
-                        }),
+                        GenericTemplates.input("text", "search", search, "Search", null, "search", ["full-width", "search-input"], (value: string) => search.value = value),
                     ).build(),
                 create("table")
                     .classes("full-width")
@@ -159,35 +155,43 @@ export class AssetTemplates {
                     .build(),
                 create("td")
                     .children(
-                        GenericTemplates.buttonWithIcon("edit", "Edit", () => {
-                            createModal(AssetTemplates.assetForm(asset, "Edit asset", (data, done) => {
-                                Api.updateAsset(asset.id, data).then(() => {
-                                    Api.getAssets().then((assetsResponse: ApiResponse<Asset[] | string>) => {
-                                        if (assetsResponse.success) {
-                                            toast(`Asset ${data.manufacturer}/${data.model} updated`, null, ToastType.positive);
-                                            assetList.value = assetsResponse.data as Asset[];
-                                        }
-                                        done();
-                                    });
-                                });
-                            }));
-                        }),
-                        GenericTemplates.buttonWithIcon("delete", "Delete", () => {
-                            createModal(GenericTemplates.confirmModalWithContent("Delete asset", create("div")
-                                .classes("flex-v")
-                                .children(
-                                    create("p")
-                                        .text(`Are you sure you want to delete the following asset?`)
-                                        .build(),
-                                    GenericTemplates.propertyList(asset)
-                                ).build(), "Yes", "No", () => {
-                                Api.deleteAssetByIdOrUniqueString(asset.id).then(() => {
-                                    toast(`Asset ${asset.manufacturer}/${asset.model} deleted`, null, ToastType.positive);
-                                    assetList.value = assetList.value.filter(a => a.id !== asset.id);
-                                });
-                            }));
-                        }, ["negative"]),
+                        AssetTemplates.assetActions(asset)
                     ).build(),
+            ).build();
+    }
+
+    static assetActions(asset: Asset) {
+        return create("div")
+            .classes("flex", "align-center")
+            .children(
+                GenericTemplates.buttonWithIcon("edit", "Edit", () => {
+                    createModal(AssetTemplates.assetForm(asset, "Edit asset", (data, done) => {
+                        Api.updateAsset(asset.id, data).then(() => {
+                            Api.getAssets().then((assetsResponse: ApiResponse<Asset[] | string>) => {
+                                if (assetsResponse.success) {
+                                    toast(`Asset ${data.manufacturer}/${data.model} updated`, null, ToastType.positive);
+                                    assetList.value = assetsResponse.data as Asset[];
+                                }
+                                done();
+                            });
+                        });
+                    }));
+                }),
+                GenericTemplates.buttonWithIcon("delete", "Delete", () => {
+                    createModal(GenericTemplates.confirmModalWithContent("Delete asset", create("div")
+                        .classes("flex-v")
+                        .children(
+                            create("p")
+                                .text(`Are you sure you want to delete the following asset?`)
+                                .build(),
+                            GenericTemplates.propertyList(asset)
+                        ).build(), "Yes", "No", () => {
+                        Api.deleteAssetByIdOrUniqueString(asset.id).then(() => {
+                            toast(`Asset ${asset.manufacturer}/${asset.model} deleted`, null, ToastType.positive);
+                            assetList.value = assetList.value.filter(a => a.id !== asset.id);
+                        });
+                    }));
+                }, ["negative"]),
             ).build();
     }
 
@@ -289,13 +293,13 @@ export class AssetTemplates {
                                 ...data.value,
                                 manufacturer: newValue ?? "",
                             };
-                        }, () => {}, [], true),
+                        }, [], true),
                         GenericTemplates.input<string>("text", "model", model, "Model", "Model", "model", [], (newValue) => {
                             data.value = {
                                 ...data.value,
                                 model: newValue ?? "",
                             };
-                        }, () => {}, [], true),
+                        }, [], true),
                         GenericTemplates.input<string>("text", "serialNumber", serialNumber, "Serial", "Serial", "serialNumber", [], (newValue) => {
                             data.value = {
                                 ...data.value,
@@ -404,11 +408,7 @@ export class AssetTemplates {
                 create("div")
                     .classes("flex", "align-center")
                     .children(
-                        GenericTemplates.input("text", "search", search, "Search", "Search", "search", ["full-width", "search-input"], () => {}, e => {
-                            setTimeout(() => {
-                                search.value = target(e).value;
-                            }, 0);
-                        }),
+                        GenericTemplates.input("text", "search", search, "Search", null, "search", ["full-width", "search-input"], (value: string) => search.value = value),
                     ).build(),
                 create("table")
                     .children(
@@ -456,11 +456,7 @@ export class AssetTemplates {
                 create("div")
                     .classes("flex", "align-center")
                     .children(
-                        GenericTemplates.input("text", "search", search, "Search", "Search", "search", ["full-width", "search-input"], () => {}, e => {
-                            setTimeout(() => {
-                                search.value = target(e).value;
-                            }, 0);
-                        }),
+                        GenericTemplates.input("text", "search", search, "Search", null, "search", ["full-width", "search-input"], (value: string) => search.value = value),
                     ).build(),
                 create("table")
                     .children(

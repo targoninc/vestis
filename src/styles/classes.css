@@ -111,7 +111,7 @@
     color: var(--bg);
     padding: 4px 6px;
     border-radius: var(--input-border-radius);
-    font-family: 'GeistMonoNerdFontMono', monospace;
+    font-family: var(--mono-font);
     font-weight: bold;
 }
 
@@ -386,7 +386,7 @@ input.invisible-input {
 }
 
 .property-value {
-    font-family: 'GeistMonoNerdFontMono', monospace;
+    font-family: var(--mono-font);
     font-size: 0.8em;
 }
 
@@ -585,7 +585,7 @@ input.invisible-input {
     transform: translate(50%, -25%);
     padding: 3px 6px;
     background: var(--red);
-    font-family: 'GeistMonoNerdFontMono', monospace;
+    font-family: var(--mono-font);
     color: var(--text);
     border-radius: 999px;
     font-size: .8em;
@@ -612,7 +612,7 @@ kbd {
     display: inline-block;
     font-size: 0.8em;
     font-weight: 700;
-    font-family: 'Roboto', sans-serif;
+    font-family: var(--mono-font);
     line-height: 1;
     padding: 2px 4px;
     white-space: nowrap;

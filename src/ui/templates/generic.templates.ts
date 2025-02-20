@@ -11,7 +11,7 @@ import {FJSC} from "../lib/fjsc";
 
 export class GenericTemplates {
     static input<T>(type: InputType, name: string, value: any, placeholder: StringOrSignal, label: StringOrSignal, id: any, classes: StringOrSignal[] = [],
-                 onchange: Callback<[T]> = () => {}, oninput: Callback<[Event]> = () => {}, attributes: StringOrSignal[] = [], required = false) {
+                 onchange: Callback<[T]> = () => {}, attributes: StringOrSignal[] = [], required = false) {
         return FJSC.input<T>({
             type,
             name,
@@ -21,7 +21,6 @@ export class GenericTemplates {
             id,
             classes,
             onchange,
-            oninput,
             attributes,
             required
         });

@@ -255,11 +255,7 @@ export class SetTemplates {
                 create("div")
                     .classes("flex", "align-center")
                     .children(
-                        GenericTemplates.input("text", "search", search, "Search", "Search", "search", ["full-width", "search-input"], () => {}, e => {
-                            setTimeout(() => {
-                                search.value = target(e).value;
-                            }, 0);
-                        }),
+                        GenericTemplates.input("text", "search", search, "Search", null, "search", ["full-width", "search-input"], (value: string) => search.value = value),
                     ).build(),
                 create("table")
                     .children(
@@ -318,11 +314,7 @@ export class SetTemplates {
                 create("div")
                     .classes("flex", "align-center")
                     .children(
-                        GenericTemplates.input("text", "search", search, "Search", "Search", "search", ["full-width", "search-input"], () => {}, e => {
-                            setTimeout(() => {
-                                search.value = target(e).value;
-                            }, 0);
-                        }),
+                        GenericTemplates.input("text", "search", search, "Search", null, "search", ["full-width", "search-input"], (value: string) => search.value = value),
                     ).build(),
                 create("table")
                     .children(
