@@ -12,7 +12,7 @@ import {compute, Signal} from "../lib/fjsc/src/signals";
 import {ToastType} from "../enums/ToastType";
 import {assetList, jobList, setList} from "../classes/store";
 import {Job} from "../../models/Job";
-import {newAsset, newSet} from "../classes/actions";
+import {newAsset, newJob, newSet} from "../classes/actions";
 import {SettingsTemplates} from "./settings.templates";
 
 export class LayoutTemplates {
@@ -59,7 +59,7 @@ export class LayoutTemplates {
             .children(
                 create("div")
                     .classes("flex")
-                    .children(GenericTemplates.buttonWithIcon("add", "New asset", newAsset, ["positive"]))
+                    .children(GenericTemplates.buttonWithIcon("add", "New asset", newAsset, ["positive"], [], "N"))
                     .build(),
                 AssetTemplates.assetList(assetList),
             ).build();
@@ -71,9 +71,20 @@ export class LayoutTemplates {
             .children(
                 create("div")
                     .classes("flex")
-                    .children(GenericTemplates.buttonWithIcon("add", "New set", newSet, ["positive"]))
+                    .children(GenericTemplates.buttonWithIcon("add", "New set", newSet, ["positive"], [], "N"))
                     .build(),
                 SetTemplates.setList(setList),
+            ).build();
+    }
+
+    static jobsPage() {
+        return create("div")
+            .classes("flex-v")
+            .children(
+                create("div")
+                    .classes("flex")
+                    .children(GenericTemplates.buttonWithIcon("add", "Add job", newJob, ["positive"], [], "N"),),
+                JobTemplates.jobList(jobList),
             ).build();
     }
 
@@ -115,30 +126,5 @@ export class LayoutTemplates {
         const active = compute(val => val === pageName, activePage);
 
         return ifjs(active, component);
-    }
-
-    static jobsPage() {
-        return create("div")
-            .classes("flex-v")
-            .children(
-                create("div")
-                    .classes("flex")
-                    .children(
-                        GenericTemplates.buttonWithIcon("add", "Add job", () => {
-                            createModal(JobTemplates.jobForm({}, "New job", (data, done) => {
-                                Api.createJob(data).then(() => {
-                                    Api.getJobs().then(jobsResponse => {
-                                        if (jobsResponse.success) {
-                                            toast(`Job ${data.jobNumber} added`, null, ToastType.positive);
-                                            jobList.value = jobsResponse.data as Job[];
-                                        }
-                                        done();
-                                    });
-                                });
-                            }));
-                        }),
-                    ),
-                JobTemplates.jobList(jobList),
-            ).build();
     }
 }

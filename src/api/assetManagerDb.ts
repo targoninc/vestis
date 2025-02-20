@@ -33,11 +33,12 @@ export class AssetManagerDB {
             count,
             priceInCents,
             description,
+            dayRate,
             tags
         }: Asset = asset;
-        await db.runAsync(INSERT_ASSET_QUERY, [id, type, manufacturer, model, serialNumber, isUnique, uniqueString, count, priceInCents, description]);
+        await db.runAsync(INSERT_ASSET_QUERY, [id, type, manufacturer, model, serialNumber, isUnique, uniqueString, count, priceInCents, dayRate, description]);
 
-        for (let tag of tags) {
+        for (const tag of tags) {
             await db.runAsync(INSERT_TAG_QUERY, [tag.id, tag.name]);
             await db.runAsync(ASSOCIATE_TAG_QUERY, [id, tag.id]);
         }
@@ -50,7 +51,7 @@ export class AssetManagerDB {
                                       WHERE isDeleted = 0`;
         const assets = await db.getAsync<Asset>(GET_ALL_ASSETS_QUERY);
 
-        for (let asset of assets) {
+        for (const asset of assets) {
             asset.tags = await db.getAsync<Tag>(GET_ASSET_TAGS_QUERY, [asset.id]);
         }
 

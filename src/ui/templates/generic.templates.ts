@@ -195,7 +195,7 @@ export class GenericTemplates {
             value,
             label,
             id,
-            oninput,
+            onchange: oninput
         });
     }
 

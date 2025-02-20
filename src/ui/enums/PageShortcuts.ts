@@ -1,4 +1,4 @@
-import {newAsset, newSet} from "../classes/actions";
+import {newAsset, newJob, newSet} from "../classes/actions";
 
 export interface Shortcut {
     key: string;
@@ -16,6 +16,12 @@ export const PageShortcuts: Record<string, Shortcut[]> = {
         {
             key: "n",
             function: newSet
+        }
+    ],
+    jobs: [
+        {
+            key: "n",
+            function: newJob
         }
     ]
 }
