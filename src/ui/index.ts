@@ -8,7 +8,7 @@ import "../ui/lib/fjsc/src/fjs-components.css";
 import "../styles/index.css";
 import "../styles/fonts.css";
 import "../styles/classes.css";
-import {pages} from "./classes/pages";
+import {pages} from "./enums/pages";
 import {target} from "./classes/types";
 import {PageShortcuts} from "./enums/PageShortcuts";
 import {focusSearch} from "./classes/actions";

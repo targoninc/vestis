@@ -10,6 +10,8 @@
     --white-4: #d6c9c5;
     --grey-light: #9f9f9f;
     --grey-dark: #646464;
+    --grey-darker: #4c4848;
+    --grey-darkest: #2f2e2e;
 
     --blue: #0b72bc;
     --green: #69c732;
@@ -25,6 +27,12 @@
     --tag-purple: #4b0c6d;
     --tag-teal: #0c6d4b;
     --tag-magenta: #6d0c6d;
+
+    --job-disposition: linear-gradient(to right, var(--tag-green), var(--tag-teal));
+    --job-disposition-border: var(--tag-green);
+
+    --job-draft: linear-gradient(to right, var(--grey-darker), var(--grey-darkest));
+    --job-draft-border: var(--grey-darker);
 
     --font-size-base: 18px;
     --gap-h: 7px;
@@ -187,13 +195,6 @@ a .material-symbols-outlined {
 
 a:hover {
     text-decoration: underline;
-}
-
-label {
-    color: var(--text-2);
-    border-radius: var(--input-border-radius);
-    background-color: var(--bg-3);
-    gap: 0;
 }
 
 .align-center {

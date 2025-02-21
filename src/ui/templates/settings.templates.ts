@@ -1,5 +1,5 @@
-import {create, nullElement} from "../lib/fjsc/src/f2";
-import {compute, Signal} from "../lib/fjsc/src/signals";
+import {create, ifjs, nullElement} from "../lib/fjsc/src/f2";
+import {compute, signal, Signal} from "../lib/fjsc/src/signals";
 import {GenericTemplates} from "./generic.templates";
 import {Api} from "../classes/api";
 import {configuration} from "../classes/store";
@@ -24,15 +24,28 @@ export class SettingsTemplates {
                 description: "Whether to display hotkeys in the UI.",
                 type: "boolean",
             },
+            {
+                key: "username",
+                icon: "person",
+                label: "Your name",
+                description: "Will be displayed in the UI.",
+                type: "string",
+            },
         ];
+        const loading = signal(false);
 
         return create("div")
             .classes("flex-v")
             .children(
                 create("h1")
-                    .text("Settings")
-                    .build(),
-                settings.map(s => SettingsTemplates.setting(s)),
+                    .classes("flex")
+                    .children(
+                        create("span")
+                            .text("Settings")
+                            .build(),
+                        ifjs(loading, GenericTemplates.spinner()),
+                    ).build(),
+                settings.map(s => SettingsTemplates.setting(s, loading)),
                 create("p")
                     .classes("align-center", "flex")
                     .children(
@@ -51,31 +64,33 @@ export class SettingsTemplates {
             ).build();
     }
 
-    static setting(sc: SettingsConfiguration) {
+    static setting(sc: SettingsConfiguration, loading: Signal<boolean>) {
         const updateKey = async (key: string, value: any) => {
+            loading.value = true;
             configuration.value = {
                 ...configuration.value,
                 [key]: value,
             };
             await Api.setConfigKey(key, value);
+            loading.value = false;
         };
         const value = compute(c => c[sc.key] ?? defaultConfig[sc.key], configuration);
 
         return create("div")
-            .classes("flex")
+            .classes("flex-v", "card")
             .children(
-                create("h2")
-                    .children(
-                        GenericTemplates.icon(sc.icon)
-                    ).build(),
                 create("div")
-                    .classes("flex-v", "panel")
+                    .classes("flex", "align-center")
                     .children(
+                        create("h3")
+                            .children(
+                                GenericTemplates.icon(sc.icon),
+                            ).build(),
                         SettingsTemplates.settingImplementation(sc, value, updateKey),
-                        create("p")
-                            .text(sc.description)
-                            .build()
-                    ).build()
+                    ).build(),
+                create("p")
+                    .text(sc.description)
+                    .build()
             ).build();
     }
 

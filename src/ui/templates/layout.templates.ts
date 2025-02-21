@@ -1,16 +1,17 @@
-import {AnyElement, AnyNode, create, ifjs} from "../lib/fjsc/src/f2";
+import {AnyElement, AnyNode, create, ifjs, StringOrSignal} from "../lib/fjsc/src/f2";
 import {GenericTemplates} from "./generic.templates";
-import {pages} from "../classes/pages";
+import {pages} from "../enums/pages";
 import {AssetTemplates} from "./asset.templates";
 import {CalendarTemplates} from "./calendar.templates";
 import {CheckoutTemplates} from "./checkout.templates";
 import {SetTemplates} from "./set.templates";
 import {JobTemplates} from "./job.templates";
 import {compute, signal, Signal} from "../lib/fjsc/src/signals";
-import {assetList, jobList, setList} from "../classes/store";
-import {newJob} from "../classes/actions";
+import {assetList, configuration, jobList, setList} from "../classes/store";
+import {newAsset, newJob, newSet} from "../classes/actions";
 import {SettingsTemplates} from "./settings.templates";
 import {Asset} from "../../models/Asset";
+import {getGreeting} from "../classes/greetings";
 
 export class LayoutTemplates {
     static app(activePage: Signal<string>) {
@@ -96,21 +97,45 @@ export class LayoutTemplates {
     }
 
     static home(activePage: Signal<string>) {
+        const assetCount = compute(assetList => assetList.length + " assets", assetList);
+        const setCount = compute(setList => setList.length + " sets", setList);
+        const jobCount = compute(jobList => jobList.length + " jobs", jobList);
+        const greeting = compute(c => getGreeting(c.username), configuration);
+
         return create("div")
             .classes("flex-v", "flex-grow", "main-panel", "panel")
             .children(
-                create("span")
-                    .text("Hi! :D")
-                    .build(),
-                create("span")
-                    .text(activePage)
-                    .build(),
+                GenericTemplates.heading(1, greeting),
+                create("div")
+                    .classes("flex")
+                    .children(
+                        LayoutTemplates.card(assetCount, [
+                            GenericTemplates.buttonWithIcon("category", "View assets", () => activePage.value = "assets"),
+                            GenericTemplates.buttonWithIcon("add", "New asset", newAsset, ["positive"]),
+                        ]),
+                        LayoutTemplates.card(setCount, [
+                            GenericTemplates.buttonWithIcon("inventory_2", "View sets", () => activePage.value = "sets"),
+                            GenericTemplates.buttonWithIcon("add", "New set", newSet, ["positive"]),
+                        ]),
+                        LayoutTemplates.card(jobCount, [
+                            GenericTemplates.buttonWithIcon("work", "View jobs", () => activePage.value = "jobs"),
+                            GenericTemplates.buttonWithIcon("add", "New job", newJob, ["positive"]),
+                        ]),
+                    ).build()
             ).build();
     }
 
-    static renderComponentIfActive(pageName: string, activePage: Signal<string>, component: AnyElement) {
-        const active = compute(val => val === pageName, activePage);
-
-        return ifjs(active, component);
+    static card(title: StringOrSignal, children: (AnyNode)[]) {
+        return create("div")
+            .classes("card", "flex-v")
+            .children(
+                create("h2")
+                    .text(title)
+                    .build(),
+                create("div")
+                    .classes("flex")
+                    .children(...children)
+                    .build()
+            ).build();
     }
 }

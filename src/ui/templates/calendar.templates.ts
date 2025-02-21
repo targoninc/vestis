@@ -10,28 +10,26 @@ import {Job} from "../../models/Job";
 import {create, ifjs, signalMap} from "../lib/fjsc/src/f2";
 import {ToastType} from "../enums/ToastType";
 import {jobList} from "../classes/store";
+import {compareJobsByStartTime, getMaxDaysFromJobs} from "../classes/jobUtils";
 
 export class CalendarTemplates {
     static calendar(activePage: Signal<string>) {
         const noPastJobs = compute(jobs => jobs.filter(job => new Date(job.endTime).getTime() >= dayAsTime(0, 0)), jobList);
-        const orderedJobs = compute(jobs => jobs.sort((a, b) => {
-            const aTime = new Date(a.startTime).getTime();
-            const bTime = new Date(b.startTime).getTime();
-            return aTime - bTime;
-        }), noPastJobs);
-        const maxDaysFromNow = compute(jobs => {
-            let max = 0;
-            for (let job of jobs) {
-                const endTime = new Date(job.endTime).getTime();
-                const diff = (endTime - dayAsTime(0, 0)) / 1000 / 60 / 60 / 24;
-                max = Math.max(max, diff);
-            }
-            return max;
-        }, noPastJobs);
+        const orderedJobs = compute(jobs => jobs.sort(compareJobsByStartTime), noPastJobs);
+        const maxDaysFromNow = compute(getMaxDaysFromJobs, noPastJobs);
         const pixelsPerDay = 200;
+        activePage.subscribe(page => {
+            if (page === "jobs" || page === "calendar") {
+                Api.getJobs().then(jobsResponse => {
+                    if (jobsResponse.success) {
+                        jobList.value = jobsResponse.data as Job[];
+                    }
+                });
+            }
+        });
 
         return create("div")
-            .classes("flex-v", "flex-grow", "no-gap", "timeline-jobs-container")
+            .classes("flex", "flex-grow", "no-gap", "timeline-jobs-container")
             .children(
                 CalendarTemplates.gridLines(maxDaysFromNow, pixelsPerDay, 2),
                 CalendarTemplates.dates(maxDaysFromNow, pixelsPerDay),
@@ -140,8 +138,12 @@ export class CalendarTemplates {
                         CalendarTemplates.jobProperties({
                             "Job number": {value: jobNumber, icon: "confirmation_number"},
                             "Day count": {value: dayCount, icon: "confirmation_number"},
+                        }),
+                        CalendarTemplates.jobProperties({
                             "Start time": {value: new Date(startTime).toLocaleString(), icon: "calendar_today", valueWarning: getPastDateWarning(startTime)},
                             "End time": {value: new Date(endTime).toLocaleString(), icon: "calendar_today"},
+                        }),
+                        CalendarTemplates.jobProperties({
                             "Customer": {value: customerId, icon: "account_circle"},
                             "Contact": {value: contact, icon: "contact_phone"},
                         }),
@@ -160,7 +162,7 @@ export class CalendarTemplates {
     static jobProperties(object: any) {
         const keys = Object.keys(object);
         return create("div")
-            .classes("flex-v", "job-property-list")
+            .classes("flex", "job-property-list")
             .children(
                 keys.map(key => {
                     let value = object[key].value;
