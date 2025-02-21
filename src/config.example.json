@@ -1,5 +1,5 @@
 {
     "db_path": "./storage/db.sqlite",
-    "last_page": "assets",
+    "last_page": "sets",
     "display_hotkeys": true
 }
