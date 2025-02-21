@@ -17,7 +17,11 @@ export class DayRateCalculator {
         }
     }
 
-    static calculateDayRate(dayRateFactor: number, priceInCents: number) {
+    static calculateDayRate(overrideDayRate: number, dayRateFactor: number, priceInCents: number) {
+        if (overrideDayRate && overrideDayRate > 0) {
+            return overrideDayRate;
+        }
+
         return Math.round((priceInCents / 100) / dayRateFactor) * 100;
     }
 }

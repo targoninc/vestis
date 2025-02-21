@@ -2,20 +2,21 @@ export function initializeTables(db: any) {
     db.run(`
         CREATE TABLE IF NOT EXISTS assets
         (
-            id           TEXT PRIMARY KEY,
-            type         TEXT,
-            manufacturer TEXT,
-            model        TEXT,
-            serialNumber TEXT,
-            isUnique     INTEGER,
-            uniqueString TEXT UNIQUE,
-            isDeleted    INTEGER DEFAULT 0,
-            priceInCents INTEGER,
-            dayRate      INTEGER,
-            description  TEXT,
-            count        INTEGER,
-            createdAt TEXT DEFAULT (datetime('now')),
-            updatedAt TEXT DEFAULT (datetime('now'))
+            id            TEXT PRIMARY KEY,
+            type          TEXT,
+            manufacturer  TEXT,
+            model         TEXT,
+            serialNumber  TEXT,
+            isUnique      INTEGER,
+            uniqueString  TEXT UNIQUE,
+            isDeleted     INTEGER DEFAULT 0,
+            priceInCents  INTEGER,
+            dayRateFactor INTEGER,
+            dayRate       INTEGER,
+            description   TEXT,
+            count         INTEGER,
+            createdAt     TEXT DEFAULT (datetime('now')),
+            updatedAt     TEXT DEFAULT (datetime('now'))
         );
     `);
 

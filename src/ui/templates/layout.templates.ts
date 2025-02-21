@@ -62,7 +62,7 @@ export class LayoutTemplates {
                     .children(
                         AssetTemplates.assetList(assets, selectedAssetId),
                     ).build(),
-                ifjs(selectedAssetId, AssetTemplates.assetCard(selectedAsset)),
+                ifjs(selectedAssetId, AssetTemplates.assetCard(selectedAsset, selectedAssetId)),
             ).build();
     }
 

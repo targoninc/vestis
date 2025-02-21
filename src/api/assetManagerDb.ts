@@ -91,26 +91,25 @@ export class AssetManagerDB {
                                         uniqueString = ?,
                                         count = ?,
                                         priceInCents = ?,
+                                        dayRateFactor = ?,
                                         dayRate = ?,
                                         description = ?
                                     WHERE id = ?
                                        OR uniqueString = ?`;
         await db.runAsync(UPDATE_ASSET_QUERY,
             [asset.type, asset.manufacturer, asset.model, asset.serialNumber, asset.isUnique,
-                asset.uniqueString, asset.count, asset.priceInCents, asset.dayRate, asset.description, identifier, identifier]);
+                asset.uniqueString, asset.count, asset.priceInCents, asset.dayRateFactor, asset.dayRate, asset.description, identifier, identifier]);
 
-        await db.runAsync(`DELETE
-                           FROM assets_tags
-                           WHERE asset_id = ?`, [identifier]);
-        for (let tag of asset.tags) {
+        await db.runAsync(`DELETE FROM assets_tags WHERE asset_id = ?`, [identifier]);
+
+        for (const tag of asset.tags) {
             await db.runAsync(INSERT_TAG_QUERY, [tag.id, tag.name]);
             await db.runAsync(ASSOCIATE_TAG_QUERY, [identifier, tag.id]);
         }
     }
 
     static async getTags(db: DB, id?: string, name?: string) {
-        const GET_TAGS_QUERY = `SELECT *
-                                FROM tags`;
+        const GET_TAGS_QUERY = `SELECT * FROM tags`;
 
         id = id === '' ? null : id;
         name = name === '' ? null : name;
@@ -126,15 +125,12 @@ export class AssetManagerDB {
     }
 
     static async createTag(db: DB, id: string, name: string) {
-        const INSERT_TAG_QUERY = `INSERT INTO tags (id, name)
-                                  VALUES (?, ?)`;
+        const INSERT_TAG_QUERY = `INSERT INTO tags (id, name) VALUES (?, ?)`;
         await db.runAsync(INSERT_TAG_QUERY, [id, name]);
     }
 
     static async deleteTag(db: DB, id: string) {
-        const DELETE_TAG_QUERY = `DELETE
-                                  FROM tags
-                                  WHERE id = ?`;
+        const DELETE_TAG_QUERY = `DELETE FROM tags WHERE id = ?`;
         await db.runAsync(DELETE_TAG_QUERY, [id]);
     }
 

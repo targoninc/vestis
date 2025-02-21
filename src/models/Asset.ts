@@ -14,6 +14,7 @@ export interface Asset {
     count: number;
     createdAt: Date;
     updatedAt: Date;
+    dayRateFactor: number;
     dayRate: number;
     tags?: Tag[];
 }

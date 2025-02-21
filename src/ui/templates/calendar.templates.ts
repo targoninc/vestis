@@ -151,7 +151,7 @@ export class CalendarTemplates {
 
     static jobPrice(job: Job) {
         const jobAssets = job.assets.concat(job.sets.map(set => set.assets).flat());
-        const assetsDayRate = jobAssets.reduce((sum, asset) => sum + DayRateCalculator.calculateDayRate(asset.dayRate, asset.priceInCents), 0);
+        const assetsDayRate = jobAssets.reduce((sum, asset) => sum + DayRateCalculator.calculateDayRate(asset.dayRate, asset.dayRateFactor, asset.priceInCents), 0);
         const price = assetsDayRate * job.dayCount;
 
         return GenericTemplates.priceDisplay(signal(price), "Price for job", ["no-gap"]);

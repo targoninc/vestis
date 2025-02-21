@@ -201,7 +201,7 @@ export class AssetTemplates {
             count: 1,
             priceInCents: 0,
             description: "",
-            dayRate: DayRateCalculator.getRateForType(AssetTypes.other.id),
+            dayRateFactor: DayRateCalculator.getRateForType(assetData?.type ?? AssetTypes.other.id),
             tags: [],
             ...assetData,
         });
@@ -213,8 +213,9 @@ export class AssetTemplates {
         const isUnique = compute(val => val.isUnique, data);
         const uniqueString = compute(val => val.uniqueString, data);
         const priceInCents = compute(val => val.priceInCents, data);
-        const dayRateFactor = compute(val => val.dayRate, data);
-        const dayRate = compute(val => DayRateCalculator.calculateDayRate(val.dayRate, val.priceInCents), data);
+        const dayRateFactor = compute(val => val.dayRateFactor, data);
+        const overrideDayRate = compute(val => val.dayRate, data);
+        const effectiveDayRate = compute(val => DayRateCalculator.calculateDayRate(val.dayRate, val.dayRateFactor, val.priceInCents), data);
         const description = compute(val => val.description, data);
         const count = compute(val => val.count, data);
         const error = compute(d => {
@@ -249,7 +250,7 @@ export class AssetTemplates {
                             data.value = {
                                 ...data.value,
                                 type: newValue,
-                                dayRate: DayRateCalculator.getRateForType(newValue) ?? data.value.dayRate,
+                                dayRateFactor: DayRateCalculator.getRateForType(newValue) ?? data.value.dayRate,
                             };
                         }),
                         ifjs(typeIcon, GenericTemplates.icon(typeIcon, ["type-icon", type]))
@@ -301,7 +302,7 @@ export class AssetTemplates {
                                 uniqueString: newValue ?? "",
                             };
                         }),
-                        GenericTemplates.input<number>("number", "count", count, "Count", "Count", "count", [], (newValue) => {
+                        GenericTemplates.input<number>("number", "count", count, "Owned count", "Owned count", "count", [], (newValue) => {
                             data.value = {
                                 ...data.value,
                                 count: newValue ?? 0,
@@ -311,19 +312,25 @@ export class AssetTemplates {
                 create("div")
                     .classes("flex", "align-center")
                     .children(
-                        GenericTemplates.priceInput(priceInCents, "Recommended retail price", (newValue) => {
+                        GenericTemplates.priceInput(priceInCents, "Retail price", (newValue) => {
                             data.value = {
                                 ...data.value,
                                 priceInCents: newValue ?? 0,
                             };
                         }),
-                        GenericTemplates.input<number>("number", "dayRate", dayRateFactor, "Day rate factor", "Day rate factor", "dayRate", [], (newValue) => {
+                        GenericTemplates.input<number>("number", "dayRateFactor", dayRateFactor, "Day rate factor", "Day rate factor", "dayRateFactor", [], (newValue) => {
+                            data.value = {
+                                ...data.value,
+                                dayRateFactor: newValue ?? 0,
+                            };
+                        }),
+                        GenericTemplates.priceInput(overrideDayRate, "Override day rate", (newValue) => {
                             data.value = {
                                 ...data.value,
                                 dayRate: newValue ?? 0,
                             };
                         }),
-                        GenericTemplates.priceDisplay(dayRate, "Day rate")
+                        GenericTemplates.priceDisplay(effectiveDayRate, "Effective day rate")
                     ).build(),
                 create("h3")
                     .text("Tags")
@@ -522,7 +529,7 @@ export class AssetTemplates {
             ).build();
     }
 
-    static assetCard(selectedAsset: Signal<Asset>) {
+    static assetCard(selectedAsset: Signal<Asset>, selectedAssetId: Signal<string>) {
         const form = compute(asset => {
             return AssetTemplates.assetForm(asset, "Edit asset", (data, done) => {
                 Api.updateAsset(asset.id, data).then(() => {
@@ -530,6 +537,7 @@ export class AssetTemplates {
                         if (assetsResponse.success) {
                             toast(`Asset ${data.manufacturer}/${data.model} updated`, null, ToastType.positive);
                             assetList.value = assetsResponse.data as Asset[];
+                            selectedAssetId.value = asset.id;
                         }
                         done();
                     });
