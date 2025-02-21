@@ -1,43 +1,46 @@
-export interface Page {
-    icon: string;
-    title: string;
-    name: string;
-}
+import {Tab} from "../../models/uiExtensions/Tab";
 
-export const pages: Page[] = [
+export const pages: Tab[] = [
     {
         icon: "home",
-        title: "Home",
-        name: "home"
+        name: "Home",
+        id: "home",
+        hotkey: "1"
     },
     {
-        icon: "list",
-        title: "Assets",
-        name: "assets"
+        icon: "category",
+        name: "Assets",
+        id: "assets",
+        hotkey: "2"
     },
     {
         icon: "inventory_2",
-        title: "Sets",
-        name: "sets"
+        name: "Sets",
+        id: "sets",
+        hotkey: "3"
     },
     {
         icon: "work",
-        title: "Jobs",
-        name: "jobs"
+        name: "Jobs",
+        id: "jobs",
+        hotkey: "4"
     },
     {
         icon: "calendar_month",
-        title: "Calendar",
-        name: "calendar"
+        name: "Calendar",
+        id: "calendar",
+        hotkey: "5"
     },
     {
         icon: "shopping_cart_checkout",
-        title: "Checkout",
-        name: "checkout"
+        name: "Checkout",
+        id: "checkout",
+        hotkey: "6"
     },
     {
         icon: "settings",
-        title: "Settings",
-        name: "settings"
+        name: "Settings",
+        id: "settings",
+        hotkey: "7"
     }
 ]

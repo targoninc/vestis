@@ -78,7 +78,7 @@ document.addEventListener("keydown", (e) => {
 
     const isNumber = e.key.match(/^[0-9]+$/);
     if (isNumber) {
-        activePage.value = pages.find((p, i) => (i + 1).toString() === e.key)?.name ?? "checkout";
+        activePage.value = pages.find((p, i) => p.hotkey === e.key)?.id ?? "checkout";
     } else {
         const pageShortcuts = PageShortcuts[activePage.value];
         if (pageShortcuts) {

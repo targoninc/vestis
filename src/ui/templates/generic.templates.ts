@@ -1,13 +1,14 @@
 import {closeModal} from "../classes/ui";
 import {createPriceFromCents, parsePrice} from "../classes/currency";
 import {InputType} from "node:zlib";
-import {AnyNode, create, ifjs, signalMap, StringOrSignal, TypeOrSignal} from "../lib/fjsc/src/f2";
+import {AnyElement, AnyNode, create, ifjs, signalMap, StringOrSignal, TypeOrSignal} from "../lib/fjsc/src/f2";
 import {compute, Signal, signal} from "../lib/fjsc/src/signals";
 import {Tag} from "../../models/Tag";
 import {Callback, target} from "../classes/types";
 import {ColoredTag} from "../../models/uiExtensions/ColoredTag";
 import {configuration, tagList} from "../classes/store";
 import {FJSC} from "../lib/fjsc";
+import {Tab} from "../../models/uiExtensions/Tab";
 
 export class GenericTemplates {
     static input<T>(type: InputType, name: string, value: any, placeholder: StringOrSignal, label: StringOrSignal, id: any, classes: StringOrSignal[] = [],
@@ -493,39 +494,42 @@ export class GenericTemplates {
             ).build();
     }
 
-    static tabs(tabs: Array<StringOrSignal>, tabNames: Signal<string[]>, activeTab: Signal<number>) {
-        if (tabNames.constructor !== Signal) {
-            tabNames = signal(tabNames as unknown as string[]) as Signal<string[]>;
-        }
+    static tabs(tabs: Array<AnyElement>, tabDefs: Signal<Tab[]>, activeTab: Signal<string>) {
+        const tabButtons = signalMap(tabDefs, create("div").classes("flex", "align-center", "no-gap"), (tabDef: Tab) => {
+            const active = compute(activeTab => activeTab === tabDef.id, activeTab);
 
-        const tabButtons = signalMap<string>(tabNames, create("div").classes("flex", "align-center", "no-gap"), tabName => {
-            const active = compute(activeTab => activeTab === tabNames.value.indexOf(tabName), activeTab);
-            const activeClass = compute((active): string => active ? "active" : "_", active);
-
-            return GenericTemplates.tabButton(tabName, active, () => {
-                activeTab.value = activeTab.value === tabNames.value.indexOf(tabName) ? -1 : tabNames.value.indexOf(tabName);
-            }, [activeClass]);
+            return GenericTemplates.tabButton(tabDef, active, () => activeTab.value = tabDef.id);
         });
 
         return create("div")
-            .classes("flex-v", "fit-width")
+            .classes("flex-v", "flex-grow")
             .children(
                 tabButtons,
-                ...tabs.map((tab, i) => {
-                    const active = compute(activeTab => activeTab === i, activeTab);
-                    return ifjs(active, tab);
-                })
+                create("div")
+                    .classes("flex-v", "flex-grow", "main-panel", "bordered-panel")
+                    .children(
+                        ...tabs.map((tab, i) => {
+                            const tabDef = tabDefs.value[i];
+                            const active = compute(activeTab => activeTab === tabDef.id, activeTab);
+
+                            return ifjs(active, tab);
+                        })
+                    ).build(),
             ).build();
     }
 
-    static tabButton(tabName: StringOrSignal, active: Signal<boolean>, onClick: Callback<[]>, classes: StringOrSignal[] = []) {
+    static tabButton(tab: Tab, active: Signal<boolean>, onClick: Callback<[]>, classes: StringOrSignal[] = []) {
+        const activeClass = compute((active): string => active ? "active" : "_", active);
+
         return create("div")
-            .classes("flex", "align-center", "tab-button", ...classes)
+            .classes("flex", "align-center", "tab-button", activeClass, ...classes)
             .onclick(onClick)
             .children(
+                ifjs(tab.icon, GenericTemplates.icon(tab.icon)),
                 create("span")
-                    .text(tabName)
+                    .text(tab.name)
                     .build(),
+                ifjs(tab.hotkey, GenericTemplates.hotkey(tab.hotkey)),
             ).build();
     }
 

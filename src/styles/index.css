@@ -27,8 +27,9 @@
     --tag-magenta: #6d0c6d;
 
     --font-size-base: 18px;
-    --gap-h: 5px;
-    --gap-v: 10px;
+    --gap-h: 7px;
+    --gap-v: 14px;
+    --fjsc-gap: var(--gap-h);
     --input-padding-h: 0.5rem;
     --input-padding-v: 0.25rem;
     --input-border-radius: 5px;
@@ -37,7 +38,7 @@
     --animation-time: 0.25s;
     --message-padding-left: 3em;
     --tag-padding: 0.3em 0.3em 0.3em 0.6em;
-    --tab-padding: 0.6em 1.2em;
+    --tab-padding: .3em .8em;
 
     --fjsc-border-radius-small: var(--input-border-radius);
 

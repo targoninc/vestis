@@ -1,52 +1,33 @@
 import {AnyElement, AnyNode, create, ifjs} from "../lib/fjsc/src/f2";
 import {GenericTemplates} from "./generic.templates";
-import {Page, pages} from "../classes/pages";
+import {pages} from "../classes/pages";
 import {AssetTemplates} from "./asset.templates";
 import {CalendarTemplates} from "./calendar.templates";
 import {CheckoutTemplates} from "./checkout.templates";
 import {SetTemplates} from "./set.templates";
 import {JobTemplates} from "./job.templates";
-import {compute, Signal} from "../lib/fjsc/src/signals";
+import {compute, signal, Signal} from "../lib/fjsc/src/signals";
 import {assetList, jobList, setList} from "../classes/store";
-import {newJob, newSet} from "../classes/actions";
+import {newJob} from "../classes/actions";
 import {SettingsTemplates} from "./settings.templates";
 import {Asset} from "../../models/Asset";
 
 export class LayoutTemplates {
     static app(activePage: Signal<string>) {
+        const tabs = [
+            LayoutTemplates.home(activePage),
+            LayoutTemplates.assetsPage(assetList),
+            LayoutTemplates.setsPage(),
+            LayoutTemplates.jobsPage(),
+            CalendarTemplates.calendar(activePage),
+            CheckoutTemplates.checkout(activePage),
+            SettingsTemplates.settings(activePage),
+        ];
+
         return create("div")
             .classes("app", "no-wrap", "padded-big", "flex-v")
             .children(
-                LayoutTemplates.topBar(activePage),
-                LayoutTemplates.mainPanel(activePage),
-            ).build();
-    }
-
-    static topBar(activePage: Signal<string>) {
-        return create("div")
-            .classes("flex")
-            .children(
-                pages.map((page: Page, i: number) => {
-                    const active = compute((val): string => val === page.name ? "active" : "_", activePage);
-
-                    return GenericTemplates.buttonWithIcon(page.icon, page.title, () => {
-                        activePage.value = page.name;
-                    }, ["navigation-button", active], [], (i + 1).toString());
-                })
-            ).build();
-    }
-
-    static mainPanel(activePage: Signal<string>) {
-        return create("div")
-            .classes("flex-v", "flex-grow", "main-panel", "panel")
-            .children(
-                LayoutTemplates.renderComponentIfActive("home", activePage, LayoutTemplates.home(activePage)),
-                LayoutTemplates.renderComponentIfActive("assets", activePage, LayoutTemplates.assetsPage(assetList)),
-                LayoutTemplates.renderComponentIfActive("sets", activePage, LayoutTemplates.setsPage()),
-                LayoutTemplates.renderComponentIfActive("jobs", activePage, LayoutTemplates.jobsPage()),
-                LayoutTemplates.renderComponentIfActive("calendar", activePage, CalendarTemplates.calendar(activePage)),
-                LayoutTemplates.renderComponentIfActive("checkout", activePage, CheckoutTemplates.checkout(activePage)),
-                LayoutTemplates.renderComponentIfActive("settings", activePage, SettingsTemplates.settings(activePage)),
+                GenericTemplates.tabs(tabs, signal(pages), activePage),
             ).build();
     }
 

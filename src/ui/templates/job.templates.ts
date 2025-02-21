@@ -12,6 +12,7 @@ import {ToastType} from "../enums/ToastType";
 import {Callback} from "../classes/types";
 import {assetList, jobList, setList} from "../classes/store";
 import {searchList} from "../classes/search";
+import {Tab} from "../../models/uiExtensions/Tab";
 
 export class JobTemplates {
     static jobForm(jobData: Partial<Job>, title: StringOrSignal, onSubmit: Callback<[Job, any]> = (data, done) => {
@@ -83,12 +84,24 @@ export class JobTemplates {
             JobTemplates.assetsTab(data),
             JobTemplates.setsTab(data),
         ];
-        const tabNames = signal([
-            "Info",
-            "Assets",
-            "Sets",
+        const tabDefinitions = signal<Tab[]>([
+            {
+                name: "Info",
+                icon: "info",
+                id: "info",
+            },
+            {
+                name: "Assets",
+                icon: "category",
+                id: "assets",
+            },
+            {
+                name: "Sets",
+                icon: "inventory_2",
+                id: "sets",
+            }
         ]);
-        const activeTab = signal(0);
+        const activeTab = signal(tabDefinitions.value[0].id);
 
         return create("div")
             .classes("flex-v", "full-width-modal", "full-height-modal")
@@ -97,7 +110,7 @@ export class JobTemplates {
                     .text(title)
                     .build(),
                 JobTemplates.jobTypeIndicator(data),
-                GenericTemplates.tabs(tabs, tabNames, activeTab),
+                GenericTemplates.tabs(tabs, tabDefinitions, activeTab),
                 create("div")
                     .classes("flex", "align-center")
                     .children(
