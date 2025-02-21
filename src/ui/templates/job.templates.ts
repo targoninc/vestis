@@ -13,10 +13,10 @@ import {Callback} from "../classes/types";
 import {assetList, jobList, setList} from "../classes/store";
 import {searchList} from "../classes/search";
 import {Tab} from "../../models/uiExtensions/Tab";
+import {newJob} from "../classes/actions";
 
 export class JobTemplates {
-    static jobForm(jobData: Partial<Job>, title: StringOrSignal, onSubmit: Callback<[Job, any]> = (data, done) => {
-    }) {
+    static jobForm(jobData: Partial<Job>, title: StringOrSignal, onSubmit: Callback<[Job, any]> = (data, done) => {}, isModal = true) {
         const maxJobNumber = jobList.value.reduce((max: number, job) => Math.max(max, parseInt(job.jobNumber)), 0);
         const data = signal<Job>({
             jobNumber: (maxJobNumber + 1).toString(),
@@ -104,7 +104,7 @@ export class JobTemplates {
         const activeTab = signal(tabDefinitions.value[0].id);
 
         return create("div")
-            .classes("flex-v", "full-width-modal", "full-height-modal")
+            .classes("flex-v")
             .children(
                 create("h1")
                     .text(title)
@@ -124,9 +124,12 @@ export class JobTemplates {
                             loading.value = true;
                             onSubmit(data.value, () => {
                                 loading.value = false;
-                                closeModal();
+                                if (isModal) {
+                                    closeModal();
+                                }
                             });
                         }, ["positive", submitClass]),
+                        ifjs(jobData && jobData.id, JobTemplates.jobDeleteButton(jobData)),
                         ifjs(loading, GenericTemplates.spinner()),
                     ).build()
             ).build();
@@ -276,7 +279,7 @@ export class JobTemplates {
         });
     }
 
-    static jobList(jobList: Signal<Job[]>) {
+    static jobList(jobList: Signal<Job[]>, selectedJobId: Signal<string>) {
         const headers = [
             {
                 headerName: "Job number",
@@ -297,10 +300,6 @@ export class JobTemplates {
             {
                 headerName: "Day count",
                 propertyName: "dayCount",
-            },
-            {
-                headerName: "Actions",
-                propertyName: null,
             },
         ];
         const activeSortHeader = signal(null);
@@ -329,6 +328,7 @@ export class JobTemplates {
                     .classes("flex", "align-center")
                     .children(
                         GenericTemplates.input("text", "search", search, "Search", null, "search", ["full-width", "search-input"], (value: string) => search.value = value),
+                        GenericTemplates.buttonWithIcon("add", "Add job", newJob, ["positive"], [], "N"),
                     ).build(),
                 create("table")
                     .classes("full-width")
@@ -340,15 +340,19 @@ export class JobTemplates {
                                         headers.map(header => GenericTemplates.tableListHeader(header.headerName, header.propertyName, activeSortHeader, jobList))
                                     ).build(),
                             ).build(),
-                        signalMap<Job>(jobList, create("tbody"), job => {
-                            return JobTemplates.job(job);
-                        })
+                        signalMap<Job>(jobList, create("tbody"), job => JobTemplates.job(job, selectedJobId))
                     ).build(),
             ).build();
     }
 
-    static job(job: Job) {
+    static job(job: Job, selectedJobId: Signal<string>) {
+        const activeClass = compute((id): string => id === job.id ? "active" : "_", selectedJobId);
+
         return create("tr")
+            .classes("clickable", activeClass)
+            .onclick(() => {
+                selectedJobId.value = job.id;
+            })
             .children(
                 create("td")
                     .text(job.jobNumber)
@@ -365,11 +369,6 @@ export class JobTemplates {
                 create("td")
                     .text(job.dayCount)
                     .build(),
-                create("td")
-                    .children(
-                        JobTemplates.jobEditButton(job),
-                        JobTemplates.jobDeleteButton(job),
-                    ).build(),
             ).build();
     }
 
@@ -421,7 +420,7 @@ export class JobTemplates {
             ).build();
     }
 
-    static jobDeleteButton(job: Job) {
+    static jobDeleteButton(job: Partial<Job>) {
         return GenericTemplates.buttonWithIcon("delete", "Delete", () => {
             createModal(GenericTemplates.confirmModalWithContent("Delete job", create("div")
                 .classes("flex-v")
@@ -446,6 +445,28 @@ export class JobTemplates {
         return create("h2")
             .classes("job-type-indicator", typeClass)
             .text(type)
+            .build();
+    }
+
+    static jobCard(selectedJob: Signal<Job>, selectedJobId: Signal<string>) {
+        const form = compute(job => {
+            return JobTemplates.jobForm(job, "Edit job", (data, done) => {
+                Api.updateJob(job.id, data).then(() => {
+                    Api.getJobs().then(jobsResponse => {
+                        if (jobsResponse.success) {
+                            toast(`Job ${data.jobNumber} updated`, null, ToastType.positive);
+                            jobList.value = jobsResponse.data as Job[];
+                            selectedJobId.value = job.id;
+                        }
+                        done();
+                    });
+                });
+            }, false);
+        }, selectedJob);
+
+        return create("div")
+            .classes("flex-v", "bordered-panel", "flex-grow")
+            .children(form)
             .build();
     }
 }

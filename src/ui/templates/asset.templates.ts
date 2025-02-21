@@ -471,7 +471,7 @@ export class AssetTemplates {
     }
 
     static assetWithQuantity(asset: Asset, onRemoveAsset: Callback<[Asset]>, onQuantityChange: Callback<[string, number]>) {
-        const quantity = signal(asset.count ?? 1);
+        const quantity = signal(asset.quantity ?? 1);
         quantity.subscribe((newQuantity) => {
             onQuantityChange(asset.id, newQuantity);
         });

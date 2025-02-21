@@ -10,7 +10,6 @@ import {JobTemplates} from "../templates/job.templates";
 import {Job} from "../../models/Job";
 import {GenericTemplates} from "../templates/generic.templates";
 import {create} from "../lib/fjsc/src/f2";
-import {ApiResponse} from "./api.base";
 
 export function newAsset() {
     createModal(AssetTemplates.assetForm({}, "New asset", (data, done) => {
@@ -18,20 +17,6 @@ export function newAsset() {
             Api.getAssets().then(assetsResponse => {
                 if (assetsResponse.success) {
                     toast(`Asset ${data.manufacturer}/${data.model} created`, null, ToastType.positive);
-                    assetList.value = assetsResponse.data as Asset[];
-                }
-                done();
-            });
-        });
-    }));
-}
-
-export function editAsset(asset: Asset) {
-    createModal(AssetTemplates.assetForm(asset, "Edit asset", (data, done) => {
-        Api.updateAsset(asset.id, data).then(() => {
-            Api.getAssets().then((assetsResponse: ApiResponse<Asset[] | string>) => {
-                if (assetsResponse.success) {
-                    toast(`Asset ${data.manufacturer}/${data.model} updated`, null, ToastType.positive);
                     assetList.value = assetsResponse.data as Asset[];
                 }
                 done();

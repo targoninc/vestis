@@ -16,5 +16,6 @@ export interface Asset {
     updatedAt: Date;
     dayRateFactor: number;
     dayRate: number;
+    quantity?: number;
     tags?: Tag[];
 }

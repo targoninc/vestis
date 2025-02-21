@@ -137,8 +137,8 @@ export class AssetManagerDB {
     static async getSets(db: DB) {
         const sets = await db.getAsync<AssetSet>('SELECT * FROM sets ORDER BY createdAt DESC');
 
-        for (let set of sets) {
-            set.assets = await db.getAsync('SELECT * FROM assets WHERE id IN (SELECT asset_id FROM sets_assets WHERE set_id = ?)', [set.id]);
+        for (const set of sets) {
+            set.assets = await this.getSetAssets(db, set.id);
         }
 
         return sets;
@@ -148,7 +148,7 @@ export class AssetManagerDB {
         const id = uuidv4();
         await db.runAsync('INSERT INTO sets (id, setName) VALUES (?, ?)', [id, setName]);
 
-        for (let asset of assets) {
+        for (const asset of assets) {
             await db.runAsync('INSERT INTO sets_assets (set_id, asset_id) VALUES (?, ?)', [id, asset.id]);
         }
 
@@ -159,13 +159,18 @@ export class AssetManagerDB {
         await db.runAsync('UPDATE sets SET setName = ? WHERE id = ?', [setData.setName, id]);
 
         await db.runAsync('DELETE FROM sets_assets WHERE set_id = ?', [id]);
-        for (let asset of setData.assets) {
-            await db.runAsync('INSERT INTO sets_assets (set_id, asset_id) VALUES (?, ?) ON CONFLICT DO NOTHING', [id, asset.id]);
+        for (const asset of setData.assets) {
+            await db.runAsync('INSERT INTO sets_assets (set_id, asset_id, quantity) VALUES (?, ?, ?) ON CONFLICT DO NOTHING', [id, asset.id, asset.quantity]);
         }
     }
 
     static async deleteSet(db: DB, id: string) {
         await db.runAsync('DELETE FROM sets WHERE id = ?', [id]);
+    }
+
+    static async getSetAssets(db: DB, setId: string): Promise<Asset[]> {
+        return await db.getAsync(`SELECT a.*, sa.quantity FROM assets AS a INNER JOIN sets_assets AS sa ON a.id = sa.asset_id
+                                        WHERE sa.set_id = ? AND a.isDeleted = 0`, [setId]);
     }
 
     static async getSet(db: DB, id: string) {
@@ -175,7 +180,7 @@ export class AssetManagerDB {
         }
         const set = sets[0];
 
-        set.assets = await db.getAsync('SELECT * FROM assets WHERE id IN (SELECT asset_id FROM sets_assets WHERE set_id = ?)', [set.id]);
+        set.assets = await this.getSetAssets(db, set.id);
         return set;
     }
 
@@ -185,11 +190,11 @@ export class AssetManagerDB {
         await db.runAsync('INSERT INTO jobs (id, jobNumber, customerId, contact, name, startTime, endTime, dayCount, disposition) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
             [id, jobNumber, customerId, contact, name, startTime, endTime, dayCount, disposition]);
 
-        for (let asset of assets) {
+        for (const asset of assets) {
             await db.runAsync('INSERT INTO jobs_assets (job_id, asset_id) VALUES (?, ?)', [id, asset.id]);
         }
 
-        for (let set of sets) {
+        for (const set of sets) {
             await db.runAsync('INSERT INTO jobs_sets (job_id, set_id) VALUES (?, ?)', [id, set.id]);
         }
 
@@ -199,13 +204,12 @@ export class AssetManagerDB {
     static async getJobs(db: DB) {
         const jobs = await db.getAsync<Job>('SELECT * FROM jobs');
 
-        for (let job of jobs) {
+        for (const job of jobs) {
             job.assets = await db.getAsync('SELECT * FROM assets WHERE id IN (SELECT asset_id FROM jobs_assets WHERE job_id = ?)', [job.id]);
             job.sets = await db.getAsync('SELECT * FROM sets WHERE id IN (SELECT set_id FROM jobs_sets WHERE job_id = ?)', [job.id]);
 
-            // I know this isn't performant. It works.
-            for (let set of job.sets) {
-                set.assets = await db.getAsync('SELECT * FROM assets WHERE id IN (SELECT asset_id FROM sets_assets WHERE set_id = ?)', [set.id]);
+            for (const set of job.sets) {
+                set.assets = await this.getSetAssets(db, set.id);
             }
         }
         return jobs;
@@ -219,7 +223,7 @@ export class AssetManagerDB {
         const job = jobs[0];
         job.assets = await db.getAsync('SELECT * FROM assets WHERE id IN (SELECT asset_id FROM jobs_assets WHERE job_id = ?)', [job.id]);
         job.sets = await db.getAsync('SELECT * FROM sets WHERE id IN (SELECT set_id FROM jobs_sets WHERE job_id = ?)', [job.id]);
-        for (let set of job.sets) {
+        for (const set of job.sets) {
             set.assets = await db.getAsync('SELECT * FROM assets WHERE id IN (SELECT asset_id FROM sets_assets WHERE set_id = ?)', [set.id]);
         }
 
@@ -231,12 +235,12 @@ export class AssetManagerDB {
             [job.jobNumber, job.customerId, job.contact, job.name, job.startTime, job.endTime, job.dayCount, job.disposition, id]);
 
         await db.runAsync('DELETE FROM jobs_assets WHERE job_id = ?', [id]);
-        for (let asset of job.assets) {
+        for (const asset of job.assets) {
             await db.runAsync('INSERT INTO jobs_assets (job_id, asset_id) VALUES (?, ?)', [id, asset.id]);
         }
 
         await db.runAsync('DELETE FROM jobs_sets WHERE job_id = ?', [id]);
-        for (let set of job.sets) {
+        for (const set of job.sets) {
             await db.runAsync('INSERT INTO jobs_sets (job_id, set_id) VALUES (?, ?)', [id, set.id]);
         }
     }

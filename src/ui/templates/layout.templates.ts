@@ -65,13 +65,17 @@ export class LayoutTemplates {
     }
 
     static jobsPage() {
+        const selectedJobId = compute(jobList => jobList?.length > 0 ? jobList[0].id : null, jobList);
+        const selectedJob = compute((list, id) => list?.find(j => j.id === id), jobList, selectedJobId);
+
         return create("div")
-            .classes("flex-v")
+            .classes("flex")
             .children(
                 create("div")
-                    .classes("flex")
-                    .children(GenericTemplates.buttonWithIcon("add", "Add job", newJob, ["positive"], [], "N"),),
-                JobTemplates.jobList(jobList),
+                    .classes("flex-v")
+                    .children(JobTemplates.jobList(jobList, selectedJobId))
+                    .build(),
+                ifjs(selectedJobId, JobTemplates.jobCard(selectedJob, selectedJobId)),
             ).build();
     }
 

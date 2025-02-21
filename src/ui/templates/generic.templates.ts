@@ -381,7 +381,7 @@ export class GenericTemplates {
             ).build();
     }
 
-    static tableListHeader(headerName: string, propertyName: string, activeSortHeader: Signal<string>, listSignal: Signal<any[]>) {
+    static tableListHeader(headerName: string, property: string|Function, activeSortHeader: Signal<string>, listSignal: Signal<any[]>) {
         const currentSortType = signal("desc");
         const headerNameFull = signal(headerName);
         const getHeaderNameFull = () => {
@@ -399,7 +399,7 @@ export class GenericTemplates {
             .classes("clickable")
             .text(headerNameFull)
             .onclick(() => {
-                if (!propertyName) {
+                if (!property) {
                     return;
                 }
 
@@ -410,31 +410,36 @@ export class GenericTemplates {
                     currentSortType.value = "asc";
                 }
                 listSignal.value = listSignal.value.sort((a, b) => {
-                    let propA = a[propertyName];
-                    let propB = b[propertyName];
-                    if (propertyName.includes(".")) {
-                        propA = propertyName.split(".").reduce((obj, key) => obj[key], a);
-                        propB = propertyName.split(".").reduce((obj, key) => obj[key], b);
-                    }
+                    if (property.constructor === String) {
+                        let propA = a[property];
+                        let propB = b[property];
+                        if (property.includes(".")) {
+                            propA = property.split(".").reduce((obj, key) => obj[key], a);
+                            propB = property.split(".").reduce((obj, key) => obj[key], b);
+                        }
 
-                    if (currentSortType.value === "asc") {
-                        if (!propA || !propB) {
-                            return 0;
-                        }
-                        if (propA.constructor === String) {
-                            return propA.localeCompare(propB);
+                        if (currentSortType.value === "asc") {
+                            if (!propA || !propB) {
+                                return 0;
+                            }
+                            if (propA.constructor === String) {
+                                return propA.localeCompare(propB);
+                            } else {
+                                return propA - propB;
+                            }
                         } else {
-                            return propA - propB;
+                            if (!propB || !propA) {
+                                return 0;
+                            }
+                            if (propA.constructor === String) {
+                                return propB.localeCompare(propA);
+                            } else {
+                                return propB - propA;
+                            }
                         }
-                    } else {
-                        if (!propB || !propA) {
-                            return 0;
-                        }
-                        if (propA.constructor === String) {
-                            return propB.localeCompare(propA);
-                        } else {
-                            return propB - propA;
-                        }
+                    } else if (property.constructor === Function) {
+                        property = property as Function;
+                        return property(a) - property(b);
                     }
                 });
             })

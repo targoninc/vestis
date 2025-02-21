@@ -16,11 +16,15 @@ export class SetTemplates {
         const headers = [
             {
                 headerName: "Set name",
-                propertyName: "setName",
+                property: "setName",
             },
             {
-                headerName: "Assets",
-                propertyName: "assets.length",
+                headerName: "Different assets",
+                property: "assets.length",
+            },
+            {
+                headerName: "Total asset count",
+                property: (s: AssetSet) => s.assets.reduce((total, asset) => total + asset.quantity, 0),
             },
         ];
         const activeSortHeader = signal(null);
@@ -55,7 +59,7 @@ export class SetTemplates {
                             .children(
                                 create("tr")
                                     .children(
-                                        headers.map(header => GenericTemplates.tableListHeader(header.headerName, header.propertyName, activeSortHeader, setList))
+                                        headers.map(header => GenericTemplates.tableListHeader(header.headerName, header.property, activeSortHeader, setList))
                                     ).build(),
                             ).build(),
                         signalMap<AssetSet>(filteredAssetList, create("tbody"), s => SetTemplates.set(s, selectedSetId))
@@ -77,6 +81,9 @@ export class SetTemplates {
                     .build(),
                 create("td")
                     .text(set.assets.length)
+                    .build(),
+                create("td")
+                    .text(set.assets.reduce((total, asset) => total + asset.quantity, 0))
                     .build(),
             ).build();
     }
