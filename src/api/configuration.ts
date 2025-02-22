@@ -4,6 +4,11 @@ import {Configuration} from "../models/Configuration";
 import {defaultConfig} from "../ui/enums/DefaultConfig";
 
 const configPath = path.join(__dirname, '../../src/config.json');
+
+if (!fs.existsSync(path.dirname(configPath))) {
+    fs.mkdirSync(path.dirname(configPath), {recursive: true});
+}
+
 if (!fs.existsSync(configPath)) {
     fs.writeFileSync(configPath, JSON.stringify(defaultConfig, null, 4));
 }
