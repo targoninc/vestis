@@ -41,8 +41,8 @@ export function deleteAsset(asset: Partial<Asset>) {
     }));
 }
 
-export function newSet() {
-    createModal(SetTemplates.setForm({}, "New set", (data, done) => {
+export function newSet(set: Partial<AssetSet> = {}) {
+    createModal(SetTemplates.setForm(set, "New set", (data, done) => {
         Api.createSet(data).then(() => {
             Api.getSets().then(setsResponse => {
                 if (setsResponse.success) {

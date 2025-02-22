@@ -6,8 +6,6 @@ import path from "path";
 import dotenv from "dotenv";
 import cors from "cors";
 import {DB} from "./api/db";
-import fs from "fs";
-import {Configuration} from "./models/Configuration";
 import {getConfig} from "./api/configuration";
 
 dotenv.config();

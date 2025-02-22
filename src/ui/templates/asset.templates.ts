@@ -11,7 +11,7 @@ import {create, ifjs, signalMap} from "../lib/fjsc/src/f2";
 import {ToastType} from "../enums/ToastType";
 import {Tag} from "../../models/Tag";
 import {assetList} from "../classes/store";
-import {deleteAsset, newAsset} from "../classes/actions";
+import {deleteAsset, newAsset, newSet} from "../classes/actions";
 
 export class AssetTemplates {
     static assetList(assetList: Signal<Asset[]>, selectedAssetId: Signal<string>) {
@@ -76,7 +76,7 @@ export class AssetTemplates {
                             .children(
                                 create("tr")
                                     .children(
-                                        headers.map(header => GenericTemplates.tableListHeader(header.headerName, header.propertyName, activeSortHeader, assetList))
+                                        ...headers.map(header => GenericTemplates.tableListHeader(header.headerName, header.propertyName, activeSortHeader, assetList))
                                     ).build(),
                             ).build(),
                         signalMap(filteredAssetList, create("tbody"), (a: Asset) => AssetTemplates.asset(a, selectedAssetId))
@@ -231,6 +231,7 @@ export class AssetTemplates {
         }, data);
         const loading = signal(false);
         const submitClass = compute((l, e) => l || e ? "disabled" : "_", loading, error);
+        const assetIsSaved = !!(assetData && assetData.id);
 
         return create("div")
             .classes("flex-v")
@@ -357,9 +358,15 @@ export class AssetTemplates {
                                 }
                             });
                         }, ["positive", submitClass]),
-                        ifjs(assetData && assetData.id, GenericTemplates.buttonWithIcon("delete", "Delete", () => deleteAsset(assetData), ["negative"])),
+                        ifjs(assetIsSaved, GenericTemplates.buttonWithIcon("delete", "Delete", () => deleteAsset(assetData), ["negative"])),
                         ifjs(loading, GenericTemplates.spinner()),
-                    ).build()
+                    ).build(),
+                ifjs(assetIsSaved, GenericTemplates.buttonWithIcon("switch_access_shortcut_add", "Create set with asset", () => {
+                    newSet({
+                        setName: `${assetData.manufacturer} ${assetData.model} set`,
+                        assets: [assetData as Asset]
+                    })
+                }))
             ).build();
     }
 
