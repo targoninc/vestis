@@ -3,7 +3,7 @@
  */
 {
   "appId": "vestis",
-  "asar": true,
+  "asar": false,
   "productName": "Vestis",
   "copyright": "Copyright © 2025 ${author}",
   "directories": {

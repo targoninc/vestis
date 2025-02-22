@@ -8,13 +8,11 @@
     "type": "git",
     "url": "https://github.com/targoninc/vestis.git"
   },
-  "license": "MIT",
   "private": true,
   "scripts": {
     "dev": "vite",
     "build": "vite build && electron-builder"
   },
-  "keywords": [],
   "author": {
     "name": "alexa",
     "email": "alex@targoninc.com"
