@@ -32,6 +32,10 @@ jobs:
       - name: Run electron-forge make
         run: npm run make
 
+      - name: Debug build output
+        run: |
+          ls -R out/
+
       - name: Archive application output
         if: ${{ matrix.os == 'windows-latest' }}
         run: |
