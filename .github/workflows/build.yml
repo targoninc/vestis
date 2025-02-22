@@ -55,12 +55,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Upload release assets
-        uses: svenstaro/upload-release-action@v2
+      - uses: "marvinpinto/action-automatic-releases@latest"
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ github.ref_name }}
-          file: |
-            ./out/windows/**
-            ./out/linux/**
-          overwrite: true
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "latest"
+          prerelease: true
+          title: "Development Build"
+          files: |
+            out/windows/**/*
+            out/linux/**/*
