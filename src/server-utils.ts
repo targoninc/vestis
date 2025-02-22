@@ -37,6 +37,7 @@ async function startServer(port: number = 48678) {
 
     const config = getConfig();
     const db = new DB(config.db_path);
+    await db.init();
     createEndpoints(app, db);
     StorageCache.ensurePath();
     app.listen(port, () => {

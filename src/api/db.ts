@@ -1,19 +1,26 @@
-import {Database} from "sqlite3";
+import sqlite3 from 'sqlite3';
+import {Database, open} from "sqlite";
 import {initializeTables, insertDefaultTags} from "./defaultValues";
 
-const sqlite3 = require('sqlite3').verbose();
-
 export class DB {
+    private readonly db_path: string;
     private db: Database;
 
     constructor(db_path: string) {
-        this.db = this.startDb(db_path);
+        this.db_path = db_path;
     }
 
-    startDb(db_path: string) {
-        const db = new sqlite3.Database(db_path ?? ':memory:');
+    async init() {
+        this.db = await this.startDb(this.db_path);
+    }
 
-        db.serialize(() => {
+    async startDb(db_path: string) {
+        const db = await open({
+            filename: db_path ?? ':memory:',
+            driver: sqlite3.Database
+        });
+
+        db.getDatabaseInstance().serialize(() => {
             initializeTables(db);
             insertDefaultTags(db);
 
@@ -38,18 +45,14 @@ export class DB {
         });
     }
 
-    async getAsync<T>(query: string, params: any[] = [], errorCallback = (_: any) => {
-    }): Promise<T[]> {
-        return new Promise((resolve, reject) => {
-            this.db.all(query, params, function (err, rows: T[]) {
-                if (err) {
-                    if (errorCallback) {
-                        errorCallback(err);
-                    }
-                    return reject(err);
-                }
-                resolve(rows);
-            });
-        });
+    async getAsync<T>(query: string, params: any[] = [], errorCallback = (_: any) => {}): Promise<T[]> {
+        try {
+            return await this.db.all(query, params);
+        } catch (e) {
+            if (errorCallback) {
+                errorCallback(e);
+            }
+            return [];
+        }
     }
 }

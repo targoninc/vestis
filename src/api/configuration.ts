@@ -3,7 +3,14 @@ import fs from "fs";
 import {Configuration} from "../models/Configuration";
 import {defaultConfig} from "../ui/enums/DefaultConfig";
 
-const configPath = path.join(__dirname, '../../src/config.json');
+let appDir = __dirname;
+
+if (appDir.includes("app.asar")) {
+    const appDirBase = process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + '/Library/Preferences' : process.env.HOME + "/.local/share");
+    appDir = path.join(appDirBase, "vestis");
+}
+
+const configPath = path.join(appDir, '../../src/config.json');
 
 if (!fs.existsSync(path.dirname(configPath))) {
     fs.mkdirSync(path.dirname(configPath), {recursive: true});
