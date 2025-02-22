@@ -37,19 +37,15 @@ export class DB {
         return db;
     }
 
-    async runAsync(query: string, params: any[] = [], errorCallback = (_: any) => {
-    }) {
-        return new Promise((resolve, reject) => {
-            this.db.run(query, params, function (err: any) {
-                if (err) {
-                    if (errorCallback) {
-                        errorCallback(err);
-                    }
-                    return reject(err);
-                }
-                resolve(this);
-            });
-        });
+    async runAsync(query: string, params: any[] = [], errorCallback = (_: any) => {}) {
+        try {
+            return await this.db.run(query, params);
+        } catch (e) {
+            if (errorCallback) {
+                errorCallback(e);
+            }
+            return null;
+        }
     }
 
     async getAsync<T>(query: string, params: any[] = [], errorCallback = (_: any) => {}): Promise<T[]> {
