@@ -39,9 +39,11 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@types/uuid": "^10.0.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "electron-squirrel-startup": "^1.0.1",
+    "electron-vite": "^3.0.0",
     "express": "^4.21.1",
     "sqlite": "^5.1.1",
     "sqlite3": "^5.1.7",

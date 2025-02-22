@@ -22,6 +22,7 @@ export class DB {
     }
 
     async startDb(db_path: string) {
+        await this.ensureDbPath(db_path);
         const db = await open({
             filename: db_path ?? ':memory:',
             driver: sqlite3.Database

@@ -1,8 +1,10 @@
 import { app, BrowserWindow } from 'electron';
-import started from 'electron-squirrel-startup';
 import {createWindow} from "./server-utils";
+import Squirrel from "electron-squirrel-startup";
+
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
-if (started) {
+// if (require("electron-squirrel-startup")) {
+if (Squirrel) {
   app.quit();
 }
 

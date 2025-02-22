@@ -1,11 +1,6 @@
-import { defineConfig } from 'vite';
+import {externalizeDepsPlugin} from 'electron-vite';
+import {defineConfig} from 'vite';
 
 export default defineConfig({
-    build: {
-        rollupOptions: {
-            external: [
-                'sqlite3',
-            ]
-        }
-    }
+    plugins: [externalizeDepsPlugin()],
 });
