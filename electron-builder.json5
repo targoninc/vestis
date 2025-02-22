@@ -30,7 +30,6 @@
   },
   "mac": {
     "target": ["dmg"],
-    "arch": ["x64", "arm64"],
     "artifactName": "${productName}-Mac-${version}-Installer.${ext}"
   },
   "linux": {
