@@ -63,4 +63,4 @@ jobs:
           prerelease: true
           title: "Development Build"
           files: |
-            out/make/squirrel.windows/**/*
+            out/make/squirrel.windows/**/*.exe
