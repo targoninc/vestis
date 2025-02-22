@@ -10,7 +10,7 @@ import {getConfig} from "./api/configuration";
 
 dotenv.config();
 
-async function startServer(port: number = 48678) {
+async function startServer(port = 48678) {
     try {
         const test = await fetch(`http://localhost:${port}`);
         if (test.status === 200) {
@@ -56,13 +56,14 @@ export function createWindow() {
         icon: 'src/assets/icon_512.png',
     });
 
-    // and load the index.html of the app.
-    if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-        win.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+    if (process.env.VITE_DEV_SERVER_URL) {
+        win.loadURL(process.env.VITE_DEV_SERVER_URL)
+        win.webContents.openDevTools()
     } else {
-        win.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
+        win.loadFile(path.join(process.env.DIST, 'index.html'))
     }
-    win.webContents.openDevTools();
 
     startServer().then();
+
+    return win;
 }

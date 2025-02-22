@@ -3,10 +3,6 @@ import {closeModal, toast} from "./classes/ui";
 import {activePage, assetList, currentCheckout, initializeStore, scannerBuffer} from "./classes/store";
 import {ToastType} from "./enums/ToastType";
 
-import "@/styles/reset.css";
-import "@/ui/lib/fjsc/src/fjs-components.css";
-import "@/styles/index.css";
-import "@/styles/classes.css";
 import {pages} from "./enums/pages";
 import {target} from "./classes/types";
 import {PageShortcuts} from "./enums/PageShortcuts";
