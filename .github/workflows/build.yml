@@ -32,28 +32,16 @@ jobs:
       - name: Run electron-forge make
         run: npm run make
 
-      - name: Debug build output
-        run: |
-          ls -R out/
-
-      - name: Archive application output
-        if: ${{ matrix.os == 'windows-latest' }}
-        run: |
-          mkdir -p out/windows
-          cp -r out/make/* out/windows
-
-      - name: Archive application output
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        run: |
-          mkdir -p out/linux
-          cp -r out/make/* out/linux
-
   release:
     needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+
+      - name: Debug build output
+        run: |
+          ls -R out/
 
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
@@ -62,5 +50,4 @@ jobs:
           prerelease: true
           title: "Development Build"
           files: |
-            out/windows/**/*
-            out/linux/**/*
+            out/make/squirrel.windows/**/*
