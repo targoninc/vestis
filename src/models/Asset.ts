@@ -1,6 +1,6 @@
 import {Tag} from "./Tag";
 
-export interface Asset {
+export interface Asset extends Record<string, any> {
     id: string;
     type: string;
     manufacturer: string;

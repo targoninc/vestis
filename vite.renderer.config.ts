@@ -5,7 +5,6 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      // Add this if you want to use absolute paths
       'ui': path.resolve(__dirname, './src/ui'),
       'styles': path.resolve(__dirname, './src/styles'),
     }

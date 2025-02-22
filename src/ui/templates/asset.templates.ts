@@ -201,6 +201,7 @@ export class AssetTemplates {
             count: 1,
             priceInCents: 0,
             description: "",
+            dayRate: 0,
             dayRateFactor: DayRateCalculator.getRateForType(assetData?.type ?? AssetTypes.other.id),
             tags: [],
             ...assetData,

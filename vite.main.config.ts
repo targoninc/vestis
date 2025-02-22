@@ -4,7 +4,7 @@ export default defineConfig({
     build: {
         rollupOptions: {
             external: [
-                'sqlite3'
+                'sqlite3',
             ]
         }
     }
