@@ -22,13 +22,12 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '22'
-          cache: 'yarn'
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: npm install
 
       - name: Run electron-forge make
-        run: yarn make
+        run: npm run make
 
       - name: Archive application output
         if: ${{ matrix.os == 'windows-latest' }}
