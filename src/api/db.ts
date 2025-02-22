@@ -1,6 +1,7 @@
 import sqlite3 from 'sqlite3';
 import {Database, open} from "sqlite";
 import {initializeTables, insertDefaultTags} from "./defaultValues";
+import fs from "fs";
 
 export class DB {
     private readonly db_path: string;
@@ -12,6 +13,12 @@ export class DB {
 
     async init() {
         this.db = await this.startDb(this.db_path);
+    }
+
+    async ensureDbPath(db_path: string) {
+        if (!fs.existsSync(db_path)) {
+            fs.mkdirSync(db_path, {recursive: true});
+        }
     }
 
     async startDb(db_path: string) {
