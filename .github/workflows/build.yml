@@ -37,8 +37,8 @@ jobs:
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: build-output
-          path: out/release
+          name: build-output-${{ matrix.os }}
+          path: release
           retention-days: 1
 
   release:
@@ -51,18 +51,25 @@ jobs:
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
-          name: build-output
-          path: out/release
+          name: build-output-windows-latest
+          path: release/windows
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output-ubuntu-latest
+          path: release/linux
 
       - name: Debug build output
         run: |
-          ls -R out/release
-#
-#      - uses: "marvinpinto/action-automatic-releases@latest"
-#        with:
-#          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-#          automatic_release_tag: "latest"
-#          prerelease: true
-#          title: "Development Build"
-#          files: |
-#            out/make/squirrel.windows/**/*.exe
+          ls -R release
+
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "latest"
+          prerelease: true
+          title: "Development Build"
+          files: |
+            release/linux/*.AppImage
+            release/windows/*.exe
