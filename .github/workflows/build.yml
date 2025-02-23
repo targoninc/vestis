@@ -71,5 +71,5 @@ jobs:
           prerelease: true
           title: "Development Build"
           files: |
-            release/linux/**/*.AppImage
-            release/windows/**/*.exe
+            release/linux/**/Vestis*.AppImage
+            release/windows/**/Vestis*.exe
