@@ -5,7 +5,6 @@ import {Api} from "../classes/api";
 import {configuration} from "../classes/store";
 import {SettingsConfiguration} from "./settingsConfiguration";
 import {InputType} from "../lib/fjsc/src/Types";
-import {defaultConfig} from "../enums/DefaultConfig";
 
 export class SettingsTemplates {
     static settings(activePage: Signal<string>) {
@@ -74,7 +73,7 @@ export class SettingsTemplates {
             await Api.setConfigKey(key, value);
             loading.value = false;
         };
-        const value = compute(c => c[sc.key] ?? defaultConfig[sc.key], configuration);
+        const value = compute(c => c[sc.key] ?? null, configuration);
 
         return create("div")
             .classes("flex-v", "card")

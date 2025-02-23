@@ -1,11 +1,10 @@
 import {Api} from "./api";
-import {Signal, signal} from "../lib/fjsc/src/signals";
+import {signal} from "../lib/fjsc/src/signals";
 import {Asset} from "../../models/Asset";
 import {AssetSet} from "../../models/AssetSet";
 import {Tag} from "../../models/Tag";
 import {Job} from "../../models/Job";
 import {Configuration} from "../../models/Configuration";
-import {defaultConfig} from "../enums/DefaultConfig";
 
 export const activePage = signal<string>("calendar");
 activePage.subscribe(async (page, changed) => {
@@ -23,7 +22,7 @@ export const currentCheckout = signal({
     sets: []
 });
 export const scannerBuffer = signal<string>("");
-export const configuration = signal<Configuration>(defaultConfig);
+export const configuration = signal<Configuration>({} as Configuration);
 
 export function initializeStore() {
     Api.getConfig().then(conf => {

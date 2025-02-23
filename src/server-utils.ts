@@ -44,6 +44,7 @@ async function startServer(port = 48678) {
 }
 
 export function createWindow() {
+    console.log('Creating window...');
     const win = new BrowserWindow({
         width: 800,
         height: 600,
