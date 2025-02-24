@@ -60,7 +60,7 @@ export class LayoutTemplates {
                     .children(
                         SetTemplates.setList(setList, selectedSetId),
                     ).build(),
-                ifjs(selectedSetId, SetTemplates.setCard(selectedSet)),
+                ifjs(selectedSetId, SetTemplates.setCard(selectedSet, selectedSetId)),
             ).build();
     }
 

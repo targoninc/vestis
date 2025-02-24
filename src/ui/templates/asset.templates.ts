@@ -11,7 +11,7 @@ import {create, ifjs, signalMap} from "../lib/fjsc/src/f2";
 import {ToastType} from "../enums/ToastType";
 import {Tag} from "../../models/Tag";
 import {assetList} from "../classes/store";
-import {deleteAsset, newAsset, newSet} from "../classes/actions";
+import {deleteAsset, editAsset, getUpdateAssetMethod, newAsset, newSet} from "../classes/actions";
 
 export class AssetTemplates {
     static assetList(assetList: Signal<Asset[]>, selectedAssetId: Signal<string>) {
@@ -479,25 +479,6 @@ export class AssetTemplates {
     }
 
     static assetWithQuantity(asset: Asset, onRemoveAsset: Callback<[Asset]>, onQuantityChange: Callback<[string, number]>) {
-        const quantity = signal(asset.quantity ?? 1);
-        quantity.subscribe((newQuantity) => {
-            onQuantityChange(asset.id, newQuantity);
-        });
-        const removeClass = signal(quantity.value === 0 ? "disabled" : "_");
-        const addClass = signal(quantity.value === asset.count ? "disabled" : "_");
-        quantity.subscribe(q => {
-            if (q === 0) {
-                removeClass.value = "disabled";
-                addClass.value = "disabled";
-            } else if (q === asset.count) {
-                removeClass.value = "disabled";
-                addClass.value = "_";
-            } else {
-                removeClass.value = "_";
-                addClass.value = "_";
-            }
-        });
-
         return create("tr")
             .children(
                 create("td")
@@ -514,19 +495,7 @@ export class AssetTemplates {
                     .build(),
                 create("td")
                     .children(
-                        create("div")
-                            .classes("flex", "align-center")
-                            .children(
-                                ifjs(asset.isUnique, GenericTemplates.buttonWithIcon("remove", "", () => {
-                                    quantity.value = Math.max(0, quantity.value - 1);
-                                }, ["negative", removeClass]), true),
-                                ifjs(asset.isUnique, GenericTemplates.buttonWithIcon("add", "", () => {
-                                    quantity.value = Math.min(asset.count, quantity.value + 1);
-                                }, ["positive", addClass]), true),
-                                create("span")
-                                    .text(quantity)
-                                    .build(),
-                            ).build(),
+                        GenericTemplates.quantityChanger(asset.id, asset.isUnique, asset.quantity, asset.count, onQuantityChange),
                     ).build(),
                 create("td")
                     .children(
@@ -539,18 +508,7 @@ export class AssetTemplates {
 
     static assetCard(selectedAsset: Signal<Asset>, selectedAssetId: Signal<string>) {
         const form = compute(asset => {
-            return AssetTemplates.assetForm(asset, "Edit asset", (data, done) => {
-                Api.updateAsset(asset.id, data).then(() => {
-                    Api.getAssets().then((assetsResponse: ApiResponse<Asset[] | string>) => {
-                        if (assetsResponse.success) {
-                            toast(`Asset ${data.manufacturer}/${data.model} updated`, null, ToastType.positive);
-                            assetList.value = assetsResponse.data as Asset[];
-                            selectedAssetId.value = asset.id;
-                        }
-                        done();
-                    });
-                });
-            }, false);
+            return AssetTemplates.assetForm(asset, "Edit asset", () => getUpdateAssetMethod(asset, selectedAssetId), false);
         }, selectedAsset);
 
         return create("div")

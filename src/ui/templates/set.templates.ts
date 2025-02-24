@@ -1,15 +1,13 @@
 import {GenericTemplates} from "./generic.templates";
-import {closeModal, createModal, toast} from "../classes/ui";
-import {AssetTemplates} from "./asset.templates";
-import {Api} from "../classes/api";
+import {closeModal, createModal} from "../classes/ui";
 import {searchList} from "../classes/search";
 import {AssetSet} from "../../models/AssetSet";
 import {Callback} from "../classes/types";
 import {compute, signal, Signal} from "../lib/fjsc/src/signals";
 import {create, ifjs, signalMap, StringOrSignal} from "../lib/fjsc/src/f2";
-import {ToastType} from "../enums/ToastType";
 import {assetList, setList} from "../classes/store";
-import {deleteSet, newSet} from "../classes/actions";
+import {deleteSet, editSet, getUpdateSetMethod, newSet} from "../classes/actions";
+import {AssetTemplates} from "./asset.templates";
 
 export class SetTemplates {
     static setList(setList: Signal<AssetSet[]>, selectedSetId: Signal<string>) {
@@ -114,7 +112,7 @@ export class SetTemplates {
                             .children(
                                 create("tr")
                                     .children(
-                                        headers.map(header => GenericTemplates.tableListHeader(header.headerName, header.propertyName, activeSortHeader, checkoutSets))
+                                    ...headers.map(header => GenericTemplates.tableListHeader(header.headerName, header.propertyName, activeSortHeader, checkoutSets))
                                     ).build(),
                             ).build(),
                         signalMap<AssetSet>(checkoutSets, create("tbody"), set => {
@@ -358,19 +356,9 @@ export class SetTemplates {
             ).build();
     }
 
-    static setCard(selectedSet: Signal<AssetSet>) {
+    static setCard(selectedSet: Signal<AssetSet>, selectedSetId: Signal<string>) {
         const form = compute(set => {
-            return SetTemplates.setForm(set, "Edit set", (data, done) => {
-                Api.updateSet(set.id, data).then(() => {
-                    Api.getSets().then(setsResponse => {
-                        if (setsResponse.success) {
-                            toast(`Set ${data.setName} updated`, null, ToastType.positive);
-                            setList.value = setsResponse.data as AssetSet[];
-                        }
-                        done();
-                    });
-                });
-            }, false);
+            return SetTemplates.setForm(set, "Edit set", () => getUpdateSetMethod(set, selectedSetId), false);
         }, selectedSet);
 
         return create("div")

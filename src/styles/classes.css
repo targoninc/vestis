@@ -176,6 +176,14 @@
     background: var(--bg-3);
 }
 
+.card.clickable {
+    cursor: pointer;
+}
+
+.card.clickable:hover {
+    background: var(--bg-4);
+}
+
 .bordered-panel {
     border: 1px solid var(--bg-4);
 }

@@ -10,6 +10,8 @@ import {JobTemplates} from "../templates/job.templates";
 import {Job} from "../../models/Job";
 import {GenericTemplates} from "../templates/generic.templates";
 import {create} from "../lib/fjsc/src/f2";
+import {ApiResponse} from "./api.base";
+import {Signal} from "../lib/fjsc/src/signals";
 
 export function newAsset() {
     createModal(AssetTemplates.assetForm({}, "New asset", (data, done) => {
@@ -90,4 +92,46 @@ export function focusSearch() {
     if (searchInput) {
         searchInput.focus();
     }
+}
+
+export function getUpdateAssetMethod(asset: Asset, selectedAssetId: Signal<string> = null) {
+    return (data: Partial<Asset>, done: () => void) => {
+        Api.updateAsset(asset.id, data).then(() => {
+            Api.getAssets().then((assetsResponse: ApiResponse<Asset[] | string>) => {
+                if (assetsResponse.success) {
+                    toast(`Asset ${data.manufacturer}/${data.model} updated`, null, ToastType.positive);
+                    assetList.value = assetsResponse.data as Asset[];
+                    if (selectedAssetId) {
+                        selectedAssetId.value = asset.id;
+                    }
+                }
+                done();
+            });
+        });
+    };
+}
+
+export function editAsset(asset: Asset) {
+    createModal(AssetTemplates.assetForm(asset, "Edit asset", getUpdateAssetMethod(asset)));
+}
+
+export function getUpdateSetMethod(set: AssetSet, selectedSetId: Signal<string> = null) {
+    return (data: Partial<AssetSet>, done: () => void) => {
+        Api.updateSet(set.id, data).then(() => {
+            Api.getSets().then(setsResponse => {
+                if (setsResponse.success) {
+                    toast(`Set ${data.setName} updated`, null, ToastType.positive);
+                    setList.value = setsResponse.data as AssetSet[];
+                    if (selectedSetId) {
+                        selectedSetId.value = set.id;
+                    }
+                }
+                done();
+            });
+        });
+    }
+}
+
+export function editSet(set: AssetSet) {
+    createModal(SetTemplates.setForm(set, "Edit set", getUpdateSetMethod(set)));
 }
