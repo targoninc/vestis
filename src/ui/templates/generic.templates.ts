@@ -135,13 +135,10 @@ export class GenericTemplates {
     static hotkey(hotkey: StringOrSignal, alwaysDisplay = false) {
         const show = compute(c => alwaysDisplay || (c.display_hotkeys === true && hotkey != null), configuration);
 
-        return create("div")
-            .children(
-                ifjs(show, create("kbd")
-                    .classes("hotkey")
-                    .text(hotkey)
-                    .build())
-            ).build();
+        return ifjs(show, create("kbd")
+            .classes("hotkey")
+            .text(hotkey)
+            .build()) as AnyElement;
     }
 
     static spinner(circleCount = 4, delay = 0.2) {
