@@ -1,6 +1,5 @@
 import {closeModal} from "../classes/ui";
 import {createPriceFromCents, parsePrice} from "../classes/currency";
-import {InputType} from "node:zlib";
 import {AnyElement, AnyNode, create, ifjs, signalMap, StringOrSignal, TypeOrSignal} from "../lib/fjsc/src/f2";
 import {compute, Signal, signal} from "../lib/fjsc/src/signals";
 import {Tag} from "../../models/Tag";
@@ -9,8 +8,8 @@ import {ColoredTag} from "../../models/uiExtensions/ColoredTag";
 import {configuration, tagList} from "../classes/store";
 import {FJSC} from "../lib/fjsc";
 import {Tab} from "../../models/uiExtensions/Tab";
-import {Asset} from "../../models/Asset";
 import {TextSegment} from "../../models/uiExtensions/TextSegment";
+import {InputType} from "../lib/fjsc/src/Types";
 
 export class GenericTemplates {
     static input<T>(type: InputType, name: string, value: any, placeholder: StringOrSignal, label: StringOrSignal, id: any, classes: StringOrSignal[] = [],
@@ -133,13 +132,16 @@ export class GenericTemplates {
             ).build();
     }
 
-    static hotkey(hotkey: string, alwaysDisplay = false) {
+    static hotkey(hotkey: StringOrSignal, alwaysDisplay = false) {
         const show = compute(c => alwaysDisplay || (c.display_hotkeys === true && hotkey != null), configuration);
 
-        return ifjs(show, create("kbd")
-            .classes("hotkey")
-            .text(hotkey)
-            .build());
+        return create("div")
+            .children(
+                ifjs(show, create("kbd")
+                    .classes("hotkey")
+                    .text(hotkey)
+                    .build())
+            ).build();
     }
 
     static spinner(circleCount = 4, delay = 0.2) {
@@ -217,7 +219,7 @@ export class GenericTemplates {
         return create("div")
             .classes("flex-v", "property-list", ...classes)
             .children(
-                keys.map(key => {
+                ...keys.map(key => {
                     let value = object[key];
                     if (value.constructor === Array) {
                         value = value.length + " items";
@@ -272,6 +274,7 @@ export class GenericTemplates {
     static textArea(value: any, label: StringOrSignal, id: StringOrSignal, oninput: Callback<[string]>) {
         return FJSC.textarea({
             classes: ["full-width"],
+            name: "textarea",
             value,
             label,
             id,
@@ -299,7 +302,7 @@ export class GenericTemplates {
                     .text(text)
                     .build(),
                 create("input")
-                    .type("checkbox")
+                    .type(InputType.checkbox)
                     .classes("hidden", "slider")
                     .id(id)
                     .checked(checked)
@@ -357,7 +360,7 @@ export class GenericTemplates {
         return create("div")
             .classes("tag-input")
             .children(
-                signalMap<Tag>(values, create("div").classes("flex"), (value, index) => {
+                signalMap<Tag>(values, create("div").classes("flex"), value => {
                     const optionColor = coloredOptions.value.find(option => option.id === value.id)?.color ?? "blue";
 
                     return GenericTemplates.tag(value, signal(optionColor), () => {
@@ -451,7 +454,7 @@ export class GenericTemplates {
             ).build();
     }
 
-    static tableListHeader(headerName: string, property: string|Function, activeSortHeader: Signal<string>, listSignal: Signal<any[]>) {
+    static tableListHeader(headerName: string, property: string|((c: any) => void), activeSortHeader: Signal<string>, listSignal: Signal<any[]>) {
         const currentSortType = signal("desc");
         const headerNameFull = signal(headerName);
         const getHeaderNameFull = () => {
@@ -508,7 +511,7 @@ export class GenericTemplates {
                             }
                         }
                     } else if (property.constructor === Function) {
-                        property = property as Function;
+                        // @ts-expect-error - property is a function
                         return property(a) - property(b);
                     }
                 });
@@ -518,7 +521,7 @@ export class GenericTemplates {
 
     static invisibleInput(onType: Callback<[string]> = () => {}, onChange: Callback<[string]> = () => {}) {
         return create("input")
-            .type("text")
+            .type(InputType.text)
             .classes("invisible-input")
             .onchange(e => {
                 onChange(target(e).value);
@@ -563,7 +566,7 @@ export class GenericTemplates {
         return create("div")
             .classes("flex", "space-between", ...classes)
             .children(
-                GenericTemplates.input<string>("text", name, displayValue, label, label, name, classes, (newValue) => {
+                GenericTemplates.input<string>(InputType.text, name, displayValue, label, label, name, classes, (newValue) => {
                     onchange(parsePrice(newValue));
                 }),
             ).build();
