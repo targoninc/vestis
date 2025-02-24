@@ -7,7 +7,6 @@ export function initializeTables(db: any) {
             manufacturer  TEXT,
             model         TEXT,
             serialNumber  TEXT,
-            isUnique      INTEGER,
             uniqueString  TEXT UNIQUE,
             isDeleted     INTEGER DEFAULT 0,
             priceInCents  INTEGER,

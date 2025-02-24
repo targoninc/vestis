@@ -10,6 +10,7 @@ import {configuration, tagList} from "../classes/store";
 import {FJSC} from "../lib/fjsc";
 import {Tab} from "../../models/uiExtensions/Tab";
 import {Asset} from "../../models/Asset";
+import {TextSegment} from "../../models/uiExtensions/TextSegment";
 
 export class GenericTemplates {
     static input<T>(type: InputType, name: string, value: any, placeholder: StringOrSignal, label: StringOrSignal, id: any, classes: StringOrSignal[] = [],
@@ -39,15 +40,17 @@ export class GenericTemplates {
             ).build();
     }
 
-    static quantityChanger(id: string, allowChange: boolean|number, initialQuantity: number, maxQuantity: number, onQuantityChange: Callback<[string, number]>) {
+    static quantityChanger(id: string, allowChange: boolean|number, initialQuantity: number, maxQuantity: number, onQuantityChange: Callback<[string, number]> = () => {}) {
         const quantity = signal(initialQuantity ?? 1);
-        quantity.subscribe((newQuantity) => {
-            onQuantityChange(id, newQuantity);
+        quantity.subscribe((newQuantity, changed) => {
+            if (changed) {
+                onQuantityChange(id, newQuantity);
+            }
         });
-        const removeClass = signal(quantity.value === 0 ? "disabled" : "_");
+        const removeClass = signal(quantity.value === 1 ? "disabled" : "_");
         const addClass = signal(quantity.value === maxQuantity ? "disabled" : "_");
         quantity.subscribe(q => {
-            if (q === 0) {
+            if (q === 1) {
                 removeClass.value = "disabled";
                 addClass.value = "disabled";
             } else if (q === maxQuantity) {
@@ -63,14 +66,34 @@ export class GenericTemplates {
             .classes("flex", "align-center")
             .children(
                 ifjs(allowChange, GenericTemplates.buttonWithIcon("remove", "", () => {
-                    quantity.value = Math.max(0, quantity.value - 1);
-                }, ["negative", removeClass]), true),
+                    quantity.value = Math.max(1, quantity.value - 1);
+                }, ["negative", removeClass])),
                 ifjs(allowChange, GenericTemplates.buttonWithIcon("add", "", () => {
                     quantity.value = Math.min(maxQuantity, quantity.value + 1);
-                }, ["positive", addClass]), true),
-                create("span")
-                    .text(quantity)
-                    .build(),
+                }, ["positive", addClass])),
+                GenericTemplates.segmentedText([
+                    {
+                        text: quantity,
+                        type: "dark",
+                    },
+                    {
+                        text: maxQuantity.toString(),
+                        type: "light",
+                    },
+                ]),
+            ).build();
+    }
+
+    static segmentedText(segments: TextSegment[]) {
+        return create("span")
+            .classes("segmented-text")
+            .children(
+                ...segments.map(segment => {
+                    return create("span")
+                        .classes(segment.type)
+                        .text(segment.text)
+                        .build();
+                })
             ).build();
     }
 

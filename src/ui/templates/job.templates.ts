@@ -2,9 +2,7 @@ import {GenericTemplates} from "./generic.templates";
 import {day} from "../classes/time";
 import {closeModal, createModal, toast} from "../classes/ui";
 import {Api} from "../classes/api";
-import {AssetTemplates} from "./asset.templates";
-import {SetTemplates} from "./set.templates";
-import {AvailabilityCalculator, itemsFromAssetsAndSets} from "../classes/availabilityCalculator";
+import {getCountInJobs, itemsFromAssetsAndSets, jobItemFromAsset} from "../classes/availabilityCalculator";
 import {compute, Signal, signal} from "../lib/fjsc/src/signals";
 import {Job} from "../../models/Job";
 import {create, ifjs, signalMap, StringOrSignal} from "../lib/fjsc/src/f2";
@@ -15,7 +13,6 @@ import {searchList} from "../classes/search";
 import {Tab} from "../../models/uiExtensions/Tab";
 import {editAsset, editSet, newJob} from "../classes/actions";
 import {JobItem} from "../../models/JobItem";
-import {Asset} from "../../models/Asset";
 import {typeIcons} from "../enums/TypeIcons";
 
 export class JobTemplates {
@@ -64,10 +61,6 @@ export class JobTemplates {
             } else {
                 invalid.value = false;
                 errors.value = [];
-            }
-            const availabilityErrors = AvailabilityCalculator.jobAvailabilityErrors(job, jobList.value);
-            if (availabilityErrors.length > 0) {
-                warnings.value = availabilityErrors.map(error => `Asset ${error.asset.manufacturer} ${error.asset.model} is overbooked on ${error.date.toLocaleDateString()}`);
             }
         };
         data.subscribe(validateData);
@@ -132,57 +125,10 @@ export class JobTemplates {
             ).build();
     }
 
-    static assetsTab(data: Signal<Job>) {
-        const assets = compute(jobData => jobData.assets, data);
-        const availableAssets = compute((assets, allAssets) => {
-            return allAssets.filter(asset => {
-                return !assets.some(a => a.id === asset.id);
-            });
-        }, assets, assetList);
-
-        return create("div")
-            .classes("flex-v")
-            .children(
-                create("h2")
-                    .text("Assets")
-                    .build(),
-                GenericTemplates.buttonWithIcon("add", "Add asset", () => {
-                    createModal(AssetTemplates.assetSearch(availableAssets, newAsset => {
-                        data.value = {
-                            ...data.value,
-                            assets: [
-                                ...data.value.assets,
-                                newAsset,
-                            ],
-                        };
-                        closeModal(true);
-                    }));
-                }, ["positive"]),
-                AssetTemplates.assetListWithQuantity(assets, removeAsset => {
-                    data.value = {
-                        ...data.value,
-                        assets: data.value.assets.filter(a => a.id !== removeAsset.id),
-                    }
-                }, (id, newQuantity) => {
-                    data.value = {
-                        ...data.value,
-                        assets: data.value.assets.map(a => {
-                            if (a.id === id) {
-                                return {
-                                    ...a,
-                                    quantity: newQuantity,
-                                };
-                            }
-                            return a;
-                        }),
-                    };
-                }),
-            ).build();
-    }
-
     static itemsTab(data: Signal<Job>) {
         const assets = compute(jobData => jobData.assets, data);
         const sets = compute(jobData => jobData.sets, data);
+        const id = compute(jobData => jobData.id, data);
         const items = compute((a, s) => itemsFromAssetsAndSets(a, s, data.value.id), assets, sets);
 
         const availableItems = compute((j, i, a, s) => {
@@ -228,7 +174,7 @@ export class JobTemplates {
                             }));
                         }, ["positive"]),
                     ).build(),
-                JobTemplates.itemList(items, removeItem => {
+                JobTemplates.itemList(items, id, removeItem => {
                     if (removeItem.type === "asset") {
                         data.value = {
                             ...data.value,
@@ -455,54 +401,6 @@ export class JobTemplates {
             ).build();
     }
 
-    static setsTab(data: Signal<Job>) {
-        const sets = compute(jobData => jobData.sets, data);
-        const availableSets = compute((sets, allSets) => {
-            return allSets.filter(set => {
-                return !sets.some(s => s.id === set.id);
-            });
-        }, sets, setList);
-
-        return create("div")
-            .classes("flex-v")
-            .children(
-                create("h2")
-                    .text("Sets")
-                    .build(),
-                GenericTemplates.buttonWithIcon("add", "Add set", () => {
-                    createModal(SetTemplates.setSearch(availableSets, newSet => {
-                        data.value = {
-                            ...data.value,
-                            sets: [
-                                ...data.value.sets,
-                                newSet,
-                            ],
-                        };
-                        closeModal(true);
-                    }));
-                }, ["positive"]),
-                SetTemplates.setListWithQuantity(sets, removeSet => {
-                    data.value = {
-                        ...data.value,
-                        sets: data.value.sets.filter(s => s.id !== removeSet.id),
-                    }
-                }, (id, newQuantity) => {
-                    data.value = {
-                        ...data.value,
-                        sets: data.value.sets.map(s => {
-                            if (s.id === id) {
-                                return {
-                                    ...s,
-                                    quantity: newQuantity,
-                                };
-                            }
-                            return s;
-                        }),
-                    };
-                }),
-            ).build();
-    }
-
     static jobDeleteButton(job: Partial<Job>) {
         return GenericTemplates.buttonWithIcon("delete", "Delete", () => {
             createModal(GenericTemplates.confirmModalWithContent("Delete job", create("div")
@@ -553,20 +451,67 @@ export class JobTemplates {
             .build();
     }
 
-    private static itemList(items: Signal<JobItem[]>, onRemoveItem: (removeItem: JobItem) => void, onChangeQuantity: (id: string, newQuantity: number) => void) {
+    private static itemList(items: Signal<JobItem[]>, jobId: Signal<string>, onRemoveItem: (removeItem: JobItem) => void, onChangeQuantity: (id: string, newQuantity: number) => void) {
         return create("div")
             .classes("flex-v")
             .children(
-                signalMap(items, create("div").classes("flex-v"), item => JobTemplates.item(item, onRemoveItem, onChangeQuantity)),
+                signalMap(items, create("div").classes("flex-v"), item => JobTemplates.item(item, jobId, onRemoveItem, onChangeQuantity)),
             ).build();
     }
 
 
-    private static item(item: JobItem, onRemoveItem: (removeItem: JobItem) => void, onChangeQuantity: (id: string, newQuantity: number) => void) {
+    private static item(item: JobItem, jobId: Signal<string>, onRemoveItem: (removeItem: JobItem) => void, onChangeQuantity: (id: string, newQuantity: number) => void) {
         const hasContent = item.content != undefined && item.content.length > 0;
+        const content = item.content ?? [];
+        const expanded = signal(false);
+        const icon = compute(expanded => expanded ? "expand_more" : "chevron_right", expanded);
+        const contentClass = compute(expanded => expanded ? "expanded" : "_", expanded);
+        const parentClass = compute(expanded => expanded ? "no-radius-bottom" : "_", expanded);
 
         return create("div")
-            .classes("flex", "space-between", "card", "clickable", ...(hasContent ? ["job-item"] : []))
+            .classes("flex-v", "no-gap")
+            .children(
+                create("div")
+                    .classes("flex", "space-between", "card", ...(hasContent ? ["job-item", parentClass] : []))
+                    .children(
+                        create("div")
+                            .classes("flex", "align-center")
+                            .children(
+                                ifjs(hasContent, GenericTemplates.buttonWithIcon(icon, null, () => expanded.value = !expanded.value, ["round-button"])),
+                                JobTemplates.itemName(item),
+                            ).build(),
+                        create("div")
+                            .classes("flex", "align-center")
+                            .children(
+                                GenericTemplates.quantityChanger(item.id, true, item.quantity, item.maxQuantity, onChangeQuantity),
+                                GenericTemplates.buttonWithIcon("delete", "Remove", () => onRemoveItem(item), ["negative"]),
+                            ).build()
+                    ).build(),
+                ifjs(hasContent, create("div")
+                    .classes("expanded-content", contentClass)
+                    .children(
+                        create("div")
+                            .classes("flex-v", "no-gap")
+                            .children(
+                                ...content.map((a, i) => {
+                                    const isFirst = i === 0;
+                                    const isLast = i === content.length - 1;
+
+                                    return create("div")
+                                        .classes("flex", "space-between", "secondary-card", isFirst ? "no-radius-top" : (isLast ? "no-radius-bottom" : "_"))
+                                        .children(
+                                            JobTemplates.itemName(jobItemFromAsset(a, jobId.value)),
+                                            GenericTemplates.quantityChanger(a.id, false, a.quantity, a.count),
+                                        ).build();
+                                })
+                            ).build(),
+                    ).build())
+            ).build();
+    }
+
+    private static itemName(item: JobItem) {
+        return create("span")
+            .classes("title", "clickable")
             .onclick(() => {
                 switch (item.type) {
                     case "asset":
@@ -577,19 +522,8 @@ export class JobTemplates {
                         break;
                 }
             })
-            .children(
-                create("span")
-                    .text(item.name)
-                    .build(),
-                create("div")
-                    .classes("flex", "align-center")
-                    .children(
-                        GenericTemplates.quantityChanger(item.id, item.asset?.isUnique ?? false, item.quantity, item.maxQuantity, onChangeQuantity),
-                        GenericTemplates.buttonWithIcon("delete", "Remove", () => {
-                            onRemoveItem(item);
-                        }, ["negative"]),
-                    ).build()
-            ).build();
+            .text(item.name)
+            .build();
     }
 
     private static itemSearch(availableItems: Signal<JobItem[]>, onAdd: (newItem: JobItem) => void) {

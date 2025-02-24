@@ -37,11 +37,6 @@ document.addEventListener("keydown", (e) => {
         if (asset) {
             const existing = currentCheckout.value.assets.find(ass => ass.uniqueString === asset.uniqueString);
             if (existing) {
-                if (existing.isUnique) {
-                    toast("This asset is already in active checkout.", null, ToastType.negative);
-                    return;
-                }
-
                 if (existing.quantity >= existing.count) {
                     toast("All available instances of this asset are already in active checkout.", null, ToastType.negative);
                     return;

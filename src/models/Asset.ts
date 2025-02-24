@@ -6,7 +6,6 @@ export interface Asset extends Record<string, any> {
     manufacturer: string;
     model: string;
     serialNumber: string;
-    isUnique: number;
     uniqueString: string;
     isDeleted: number;
     priceInCents: number;

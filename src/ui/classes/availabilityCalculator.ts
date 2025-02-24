@@ -18,6 +18,7 @@ export class AvailabilityCalculator {
         return jobs.filter(job => job.assets.some(a => a.id === asset.id) || job.sets.some(s => s.assets.some(a => a.id === asset.id)));
     }
 
+    // TODO: Rewrite at some point íf reenabling overbooking
     static jobAvailabilityErrors(job: Job, existingJobs: Job[]) {
         const assetsWithErrors = [];
         for (const asset of job.assets) {
@@ -107,33 +108,40 @@ export function getCountInJobs(jobs: Job[], id: string, excludeJobId: string|nul
     }, 0);
 }
 
-export function getMaxQuantityFromSet(set: AssetSet, excludeJobId: string|null = null) {
+export function getMinQuantityFromSet(set: AssetSet, excludeJobId: string|null = null) {
     return set.assets.reduce((prev, cur) => {
         const count = cur.count - getCountInJobs(jobList.value, cur.id, excludeJobId);
-        if (count > prev) {
+        if (count < prev) {
             return count;
         }
         return prev;
-    }, 0);
+    }, Infinity);
 }
 
 export function itemsFromAssetsAndSets(a: Asset[], s: AssetSet[], jobId: string|null = null) {
-    return a.map(asset => {
-        return <JobItem>{
-            id: asset.id,
-            name: asset.manufacturer + " " + asset.model,
-            type: "asset",
-            quantity: asset.quantity,
-            maxQuantity: asset.count - getCountInJobs(jobList.value, asset.id, jobId),
-        };
-    }).concat(s.map(set => {
-        return <JobItem>{
-            id: set.id,
-            name: set.setName,
-            type: "set",
-            quantity: set.quantity,
-            maxQuantity: getMaxQuantityFromSet(set, jobId),
-            content: set.assets,
-        };
-    }));
+    return a.map(ass => jobItemFromAsset(ass, jobId))
+        .concat(s.map(set => jobItemFromSet(set, jobId)));
+}
+
+export function jobItemFromAsset(asset: Asset, jobId: string|null = null) {
+    return <JobItem>{
+        id: asset.id,
+        name: asset.manufacturer + " " + asset.model,
+        type: "asset",
+        quantity: asset.quantity,
+        asset,
+        maxQuantity: asset.count - getCountInJobs(jobList.value, asset.id, jobId),
+    };
+}
+
+export function jobItemFromSet(set: AssetSet, jobId: string|null = null) {
+    return <JobItem>{
+        id: set.id,
+        name: set.setName,
+        type: "set",
+        set,
+        quantity: set.quantity,
+        maxQuantity: getMinQuantityFromSet(set, jobId),
+        content: set.assets,
+    };
 }

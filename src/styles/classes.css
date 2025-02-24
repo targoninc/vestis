@@ -112,13 +112,21 @@
 }
 
 .type-indicator {
-    background: var(--text-4);
-    color: var(--bg);
+    background: var(--bg);
+    color: var(--text);
     padding: 2px 10px;
     font-size: .8em;
     border-radius: 999px;
     font-weight: bold;
     width: max-content;
+}
+
+.type-indicator.asset .material-symbols-outlined {
+    border-bottom: 3px solid var(--blue);
+}
+
+.type-indicator.set .material-symbols-outlined {
+    border-bottom: 3px solid var(--red);
 }
 
 .value:hover {
@@ -167,7 +175,7 @@
     transition: width 0.2s ease;
 }
 
-.panel, .bordered-panel, .card {
+.panel, .bordered-panel, .card, .secondary-card {
     padding: var(--gap-v);
     border-radius: var(--input-border-radius);
     background: var(--bg-2);
@@ -175,6 +183,22 @@
 
 .card {
     background: var(--bg-3);
+}
+
+.secondary-card {
+    background: var(--bg);
+    border: 1px solid var(--bg-3);
+    border-top: none;
+}
+
+.no-radius-top {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+.no-radius-bottom {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
 }
 
 .card.clickable {
@@ -185,8 +209,76 @@
     background: var(--bg-4);
 }
 
+.card .card {
+    background: var(--bg-2);
+}
+
 .bordered-panel {
     border: 1px solid var(--bg-4);
+}
+
+.title {
+    padding: var(--input-padding-v) var(--input-padding-h);
+    line-height: 1.5;
+    font-size: var(--font-size-base);
+    background: var(--bg);
+    border-radius: var(--input-border-radius);
+}
+
+.title.clickable {
+    cursor: pointer;
+}
+
+.title.clickable:hover {
+    background: var(--bg-4);
+}
+
+.expanded-content {
+    height: 0;
+    overflow: hidden;
+}
+
+.expanded-content.expanded {
+    height: initial;
+    overflow: auto;
+}
+
+.round-button {
+    border-radius: 999px;
+    height: 100%;
+    width: auto;
+}
+
+.segmented-text {
+    display: flex;
+    flex-wrap: nowrap;
+}
+
+.segmented-text span {
+    padding: var(--input-padding-v) var(--input-padding-h);
+    background: var(--bg-4);
+    border: 1px solid var(--grey-darker);
+    border-left: none;
+    font-family: var(--mono-font);
+}
+
+.segmented-text span.dark {
+    background: var(--bg);
+    color: var(--text);
+}
+
+.segmented-text span.light {
+    background: var(--bg-4);
+    color: var(--text-2);
+}
+
+.segmented-text span:first-child {
+    border-radius: var(--input-border-radius) 0 0 var(--input-border-radius);
+    border-left: 1px solid var(--grey-darker);
+}
+
+.segmented-text span:last-child {
+    border-radius: 0 var(--input-border-radius) var(--input-border-radius) 0;
 }
 
 iframe {

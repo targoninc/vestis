@@ -109,8 +109,6 @@ export class CalendarTemplates {
         const type = disposition ? "disposition" : "draft";
         const height = 40;
         const offset = 4;
-        const availabilityErrors = AvailabilityCalculator.jobAvailabilityErrors(job, jobs.value);
-        const errorCount = availabilityErrors.length;
 
         return create("div")
             .classes("timeline-job", "flex", type)
@@ -127,12 +125,10 @@ export class CalendarTemplates {
                             .text(name)
                             .build(),
                         ifjs(startMoved, GenericTemplates.icon("arrow_right_alt")),
-                        ifjs(errorCount > 0, GenericTemplates.errorIndicator(errorCount.toString())),
                     ).build(),
                 create("div")
                     .classes("timeline-job-details", "flex-v")
                     .children(
-                        CalendarTemplates.jobWarnings(availabilityErrors),
                         CalendarTemplates.jobPrice(job),
                         CalendarTemplates.jobActions(job),
                         CalendarTemplates.jobProperties({

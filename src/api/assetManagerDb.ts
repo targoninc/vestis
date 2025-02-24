@@ -17,10 +17,10 @@ const ASSOCIATE_TAG_QUERY = `INSERT INTO assets_tags (asset_id, tag_id)
 
 export class AssetManagerDB {
     static async insertAsset(db: DB, asset: Asset) {
-        const INSERT_ASSET_QUERY = `INSERT INTO assets (id, type, manufacturer, model, serialNumber, isUnique,
+        const INSERT_ASSET_QUERY = `INSERT INTO assets (id, type, manufacturer, model, serialNumber,
                                                         uniqueString, isDeleted, count, priceInCents, dayRate,
                                                         description)
-                                    VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)`;
+                                    VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)`;
 
         const id = uuidv4();
         const {
@@ -28,7 +28,6 @@ export class AssetManagerDB {
             manufacturer,
             model,
             serialNumber,
-            isUnique,
             uniqueString,
             count,
             priceInCents,
@@ -36,7 +35,7 @@ export class AssetManagerDB {
             dayRate,
             tags
         }: Asset = asset;
-        await db.runAsync(INSERT_ASSET_QUERY, [id, type, manufacturer, model, serialNumber, isUnique, uniqueString, count, priceInCents, dayRate, description]);
+        await db.runAsync(INSERT_ASSET_QUERY, [id, type, manufacturer, model, serialNumber, uniqueString, count, priceInCents, dayRate, description]);
 
         for (const tag of tags) {
             await db.runAsync(INSERT_TAG_QUERY, [tag.id, tag.name]);
@@ -87,7 +86,6 @@ export class AssetManagerDB {
                                         manufacturer = ?,
                                         model = ?,
                                         serialNumber = ?,
-                                        isUnique = ?,
                                         uniqueString = ?,
                                         count = ?,
                                         priceInCents = ?,
@@ -97,8 +95,9 @@ export class AssetManagerDB {
                                     WHERE id = ?
                                        OR uniqueString = ?`;
         await db.runAsync(UPDATE_ASSET_QUERY,
-            [asset.type, asset.manufacturer, asset.model, asset.serialNumber, asset.isUnique,
-                asset.uniqueString, asset.count, asset.priceInCents, asset.dayRateFactor, asset.dayRate, asset.description, identifier, identifier]);
+            [asset.type, asset.manufacturer, asset.model, asset.serialNumber,
+                asset.uniqueString, asset.count, asset.priceInCents, asset.dayRateFactor,
+                asset.dayRate, asset.description, identifier, identifier]);
 
         await db.runAsync(`DELETE FROM assets_tags WHERE asset_id = ?`, [identifier]);
 

@@ -10,8 +10,9 @@ import {compute, Signal, signal} from "../lib/fjsc/src/signals";
 import {create, ifjs, signalMap} from "../lib/fjsc/src/f2";
 import {ToastType} from "../enums/ToastType";
 import {Tag} from "../../models/Tag";
-import {assetList} from "../classes/store";
+import {assetList, jobList} from "../classes/store";
 import {deleteAsset, editAsset, getUpdateAssetMethod, newAsset, newSet} from "../classes/actions";
+import {getCountInJobs} from "../classes/availabilityCalculator";
 
 export class AssetTemplates {
     static assetList(assetList: Signal<Asset[]>, selectedAssetId: Signal<string>) {
@@ -27,10 +28,6 @@ export class AssetTemplates {
             {
                 headerName: "Serial",
                 propertyName: "serialNumber",
-            },
-            {
-                headerName: "Unique",
-                propertyName: "isUnique",
             },
             {
                 headerName: "Identifier",
@@ -149,9 +146,6 @@ export class AssetTemplates {
                     .text(asset.serialNumber)
                     .build(),
                 create("td")
-                    .text(asset.isUnique)
-                    .build(),
-                create("td")
                     .text(asset.uniqueString)
                     .build(),
                 create("td")
@@ -177,9 +171,6 @@ export class AssetTemplates {
                     .text(asset.serialNumber)
                     .build(),
                 create("td")
-                    .text(asset.isUnique)
-                    .build(),
-                create("td")
                     .text(asset.uniqueString)
                     .build(),
             ).build();
@@ -197,7 +188,6 @@ export class AssetTemplates {
             manufacturer: "",
             model: "",
             serialNumber: "",
-            isUnique: 1,
             uniqueString: (maxUniqueId + 1).toString().padStart(6, "0"),
             count: 1,
             priceInCents: 0,
@@ -212,7 +202,6 @@ export class AssetTemplates {
         const manufacturer = compute(val => val.manufacturer, data);
         const model = compute(val => val.model, data);
         const serialNumber = compute(val => val.serialNumber, data);
-        const isUnique = compute(val => val.isUnique, data);
         const uniqueString = compute(val => val.uniqueString, data);
         const priceInCents = compute(val => val.priceInCents, data);
         const dayRateFactor = compute(val => val.dayRateFactor, data);
@@ -223,10 +212,6 @@ export class AssetTemplates {
         const error = compute(d => {
             if (d.manufacturer === "" || d.model === "") {
                 return "Manufacturer and model are required.";
-            }
-
-            if (d.isUnique && d.uniqueString === "") {
-                return "Unique string is required.";
             }
 
             return null;
@@ -290,12 +275,6 @@ export class AssetTemplates {
                             };
                         }),
                     ).build(),
-                GenericTemplates.toggle("Unique", isUnique, (newValue) => {
-                    data.value = {
-                        ...data.value,
-                        isUnique: newValue ? 1 : 0,
-                    };
-                }),
                 create("div")
                     .classes("flex", "align-center")
                     .children(
@@ -496,7 +475,7 @@ export class AssetTemplates {
                     .build(),
                 create("td")
                     .children(
-                        GenericTemplates.quantityChanger(asset.id, asset.isUnique, asset.quantity, asset.count, onQuantityChange),
+                        GenericTemplates.quantityChanger(asset.id, true, asset.quantity, asset.count - getCountInJobs(jobList.value, asset.id), onQuantityChange),
                     ).build(),
                 create("td")
                     .children(
