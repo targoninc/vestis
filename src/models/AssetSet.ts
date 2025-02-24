@@ -5,5 +5,6 @@ export interface AssetSet extends Record<string, any> {
     setName: string;
     createdAt: Date;
     updatedAt: Date;
+    quantity?: number;
     assets?: Asset[];
 }

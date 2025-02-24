@@ -1,5 +1,8 @@
 import {Asset} from "../../models/Asset";
 import {Job} from "../../models/Job";
+import {AssetSet} from "../../models/AssetSet";
+import {JobItem} from "../../models/JobItem";
+import {jobList} from "./store";
 
 export class AvailabilityCalculator {
     static dateBetween(start: Date, end: Date, date: Date) {
@@ -62,4 +65,75 @@ export class AvailabilityCalculator {
         }
         return dates;
     }
+}
+
+export function hasJobOverlap(job: Job, excludeJob: Job|null = null) {
+    if (!excludeJob) {
+        return true;
+    }
+    const excludeJobStart = new Date(excludeJob.startTime).getTime();
+    const excludeJobEnd = new Date(excludeJob.endTime).getTime();
+    const jobStart = new Date(job.startTime).getTime();
+    const jobEnd = new Date(job.endTime).getTime();
+    return excludeJobStart < jobEnd && excludeJobEnd > jobStart;
+}
+
+export function getCountInJobs(jobs: Job[], id: string, excludeJobId: string|null = null) {
+    const excludeJob = jobs.find(j => j.id === excludeJobId);
+
+    return jobs.reduce((total, job) => {
+        if (excludeJob) {
+            if (excludeJobId === job.id || !hasJobOverlap(job, excludeJob)) {
+                return total;
+            }
+        }
+
+        let add = 0;
+        const assetInSet = job.sets.find(i => i.assets.some(a => a.id === id));
+        if (assetInSet) {
+            add += assetInSet.quantity;
+        }
+
+        const asset = job.assets.find(i => i.id === id);
+        if (asset) {
+            add += asset.quantity;
+        }
+
+        const set = job.sets.find(i => i.id === id);
+        if (set) {
+            add += set.quantity;
+        }
+        return total + add;
+    }, 0);
+}
+
+export function getMaxQuantityFromSet(set: AssetSet, excludeJobId: string|null = null) {
+    return set.assets.reduce((prev, cur) => {
+        const count = cur.count - getCountInJobs(jobList.value, cur.id, excludeJobId);
+        if (count > prev) {
+            return count;
+        }
+        return prev;
+    }, 0);
+}
+
+export function itemsFromAssetsAndSets(a: Asset[], s: AssetSet[], jobId: string|null = null) {
+    return a.map(asset => {
+        return <JobItem>{
+            id: asset.id,
+            name: asset.manufacturer + " " + asset.model,
+            type: "asset",
+            quantity: asset.quantity,
+            maxQuantity: asset.count - getCountInJobs(jobList.value, asset.id, jobId),
+        };
+    }).concat(s.map(set => {
+        return <JobItem>{
+            id: set.id,
+            name: set.setName,
+            type: "set",
+            quantity: set.quantity,
+            maxQuantity: getMaxQuantityFromSet(set, jobId),
+            content: set.assets,
+        };
+    }));
 }

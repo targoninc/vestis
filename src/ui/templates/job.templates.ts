@@ -4,7 +4,7 @@ import {closeModal, createModal, toast} from "../classes/ui";
 import {Api} from "../classes/api";
 import {AssetTemplates} from "./asset.templates";
 import {SetTemplates} from "./set.templates";
-import {AvailabilityCalculator} from "../classes/availabilityCalculator";
+import {AvailabilityCalculator, itemsFromAssetsAndSets} from "../classes/availabilityCalculator";
 import {compute, Signal, signal} from "../lib/fjsc/src/signals";
 import {Job} from "../../models/Job";
 import {create, ifjs, signalMap, StringOrSignal} from "../lib/fjsc/src/f2";
@@ -15,6 +15,8 @@ import {searchList} from "../classes/search";
 import {Tab} from "../../models/uiExtensions/Tab";
 import {editAsset, editSet, newJob} from "../classes/actions";
 import {JobItem} from "../../models/JobItem";
+import {Asset} from "../../models/Asset";
+import {typeIcons} from "../enums/TypeIcons";
 
 export class JobTemplates {
     static jobForm(jobData: Partial<Job>, title: StringOrSignal, onSubmit: Callback<[Job, any]> = (data, done) => {}, isModal = true) {
@@ -181,39 +183,18 @@ export class JobTemplates {
     static itemsTab(data: Signal<Job>) {
         const assets = compute(jobData => jobData.assets, data);
         const sets = compute(jobData => jobData.sets, data);
-        const items = compute((a, s) => {
-            return a.map(asset => {
-                return <JobItem>{
-                    id: asset.id,
-                    name: asset.manufacturer + " " + asset.model,
-                    type: "asset",
-                    quantity: asset.quantity,
-                    maxQuantity: asset.count,
-                };
-            }).concat(s.map(set => {
-                const highestCountInAssets = set.assets.reduce((prev, cur) => {
-                    if (cur.count > prev) {
-                        return cur.count;
-                    }
-                    return prev;
-                }, 0)
+        const items = compute((a, s) => itemsFromAssetsAndSets(a, s, data.value.id), assets, sets);
 
-                return <JobItem>{
-                    id: set.id,
-                    name: set.setName,
-                    type: "set",
-                    quantity: set.quantity,
-                    content: set.assets,
-                    maxQuantity: highestCountInAssets,
-                };
-            }));
-        }, assets, sets);
+        const availableItems = compute((j, i, a, s) => {
+            return itemsFromAssetsAndSets(a, s, j.id).filter(item => {
+                const isInJob = i.some(i => i.id === item.id);
+                if (isInJob) {
+                    return false;
+                }
 
-        const availableAssets = compute((assets, allAssets) => {
-            return allAssets.filter(asset => {
-                return !assets.some(a => a.id === asset.id);
+                return item.maxQuantity > 0;
             });
-        }, assets, assetList);
+        }, data, items, assetList, setList);
 
         return create("div")
             .classes("flex-v")
@@ -224,15 +205,25 @@ export class JobTemplates {
                 create("div")
                     .classes("flex", "align-center")
                     .children(
-                        GenericTemplates.buttonWithIcon("add", "Add asset", () => {
-                            createModal(AssetTemplates.assetSearch(availableAssets, newAsset => {
-                                data.value = {
-                                    ...data.value,
-                                    assets: [
-                                        ...data.value.assets,
-                                        newAsset,
-                                    ],
-                                };
+                        GenericTemplates.buttonWithIcon("add", "Add item", () => {
+                            createModal(JobTemplates.itemSearch(availableItems, (newItem: JobItem) => {
+                                if (newItem.type === "asset") {
+                                    data.value = {
+                                        ...data.value,
+                                        assets: [
+                                            ...data.value.assets,
+                                            newItem.asset,
+                                        ],
+                                    };
+                                } else {
+                                    data.value = {
+                                        ...data.value,
+                                        sets: [
+                                            ...data.value.sets,
+                                            newItem.set
+                                        ],
+                                    };
+                                }
                                 closeModal(true);
                             }));
                         }, ["positive"]),
@@ -429,7 +420,7 @@ export class JobTemplates {
                             .children(
                                 create("tr")
                                     .children(
-                                        headers.map(header => GenericTemplates.tableListHeader(header.headerName, header.propertyName, activeSortHeader, jobList))
+                                    ...headers.map(header => GenericTemplates.tableListHeader(header.headerName, header.propertyName, activeSortHeader, jobList))
                                     ).build(),
                             ).build(),
                         signalMap<Job>(jobList, create("tbody"), job => JobTemplates.job(job, selectedJobId))
@@ -598,6 +589,72 @@ export class JobTemplates {
                             onRemoveItem(item);
                         }, ["negative"]),
                     ).build()
+            ).build();
+    }
+
+    private static itemSearch(availableItems: Signal<JobItem[]>, onAdd: (newItem: JobItem) => void) {
+        const search = signal("");
+        const filteredItems = signal([]);
+        const filterList = () => {
+            if (search.value === "") {
+                filteredItems.value = availableItems.value;
+                return;
+            }
+            const searchValue = search.value.toLowerCase();
+            filteredItems.value = searchList(["id", "name", "asset", "set"], availableItems.value, searchValue);
+        };
+        search.subscribe(filterList);
+        availableItems.subscribe(filterList);
+        filterList();
+
+        return create("div")
+            .classes("flex-v", "flex-grow", "search-panel")
+            .children(
+                create("span")
+                    .text("Items")
+                    .build(),
+                create("div")
+                    .classes("flex", "align-center")
+                    .children(
+                        GenericTemplates.input("text", "search", search, "Search", null, "search", ["full-width", "search-input"], (value: string) => search.value = value),
+                    ).build(),
+                create("table")
+                    .children(
+                        create("thead")
+                            .children(
+                                create("tr")
+                                    .children(
+                                        create("th")
+                                            .text("Type")
+                                            .build(),
+                                        create("th")
+                                            .text("Name")
+                                            .build(),
+                                        create("th")
+                                            .text("Stock")
+                                            .build(),
+                                    ).build(),
+                            ).build(),
+                        signalMap<JobItem>(filteredItems, create("tbody"), item => {
+                            return create("tr")
+                                .classes("clickable")
+                                .onclick(() => {
+                                    onAdd(item);
+                                })
+                                .children(
+                                    create("td")
+                                        .children(
+                                            GenericTemplates.typeIndicator(item.type, typeIcons[item.type]),
+                                        ).build(),
+                                    create("td")
+                                        .text(item.name)
+                                        .build(),
+                                    create("td")
+                                        .text(item.maxQuantity)
+                                        .build(),
+                                ).build();
+                        })
+                    ).build(),
             ).build();
     }
 }

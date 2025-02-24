@@ -28,6 +28,17 @@ export class GenericTemplates {
         });
     }
 
+    static typeIndicator(type: string, icon?: string) {
+        return create("div")
+            .classes("flex", "align-center", "type-indicator", type)
+            .children(
+                ifjs(icon, GenericTemplates.icon(icon)),
+                create("span")
+                    .text(type)
+                    .build(),
+            ).build();
+    }
+
     static quantityChanger(id: string, allowChange: boolean|number, initialQuantity: number, maxQuantity: number, onQuantityChange: Callback<[string, number]>) {
         const quantity = signal(initialQuantity ?? 1);
         quantity.subscribe((newQuantity) => {

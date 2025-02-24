@@ -162,6 +162,7 @@ export class AssetTemplates {
 
     static searchAsset(asset: Asset, onSelectAsset: (asset: Asset) => void) {
         return create("tr")
+            .classes("clickable")
             .onclick(() => {
                 onSelectAsset(asset);
             })

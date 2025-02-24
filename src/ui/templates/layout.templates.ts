@@ -1,4 +1,4 @@
-import {AnyElement, AnyNode, create, ifjs, StringOrSignal} from "../lib/fjsc/src/f2";
+import {AnyNode, create, ifjs, StringOrSignal} from "../lib/fjsc/src/f2";
 import {GenericTemplates} from "./generic.templates";
 import {pages} from "../enums/pages";
 import {AssetTemplates} from "./asset.templates";

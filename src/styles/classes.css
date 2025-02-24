@@ -111,13 +111,14 @@
     word-break: break-all;
 }
 
-.info-pill {
+.type-indicator {
     background: var(--text-4);
     color: var(--bg);
-    padding: 4px 6px;
-    border-radius: var(--input-border-radius);
-    font-family: var(--mono-font);
+    padding: 2px 10px;
+    font-size: .8em;
+    border-radius: 999px;
     font-weight: bold;
+    width: max-content;
 }
 
 .value:hover {

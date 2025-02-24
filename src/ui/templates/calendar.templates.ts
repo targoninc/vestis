@@ -127,7 +127,7 @@ export class CalendarTemplates {
                             .text(name)
                             .build(),
                         ifjs(startMoved, GenericTemplates.icon("arrow_right_alt")),
-                        ifjs(errorCount > 0, GenericTemplates.errorIndicator(errorCount)),
+                        ifjs(errorCount > 0, GenericTemplates.errorIndicator(errorCount.toString())),
                     ).build(),
                 create("div")
                     .classes("timeline-job-details", "flex-v")
@@ -164,7 +164,7 @@ export class CalendarTemplates {
         return create("div")
             .classes("flex", "job-property-list")
             .children(
-                keys.map(key => {
+            ...keys.map(key => {
                     let value = object[key].value;
                     if (value.constructor === Array) {
                         value = value.length + " items";
@@ -235,7 +235,7 @@ export class CalendarTemplates {
         return create("div")
             .classes("flex-v", "full-width")
             .children(
-                availabilityErrors.map(error => {
+            ...availabilityErrors.map(error => {
                     return create("div")
                         .classes("flex", "calendar-warning")
                         .text(`Asset ${error.asset.manufacturer} ${error.asset.model} is overbooked on ${error.date.toLocaleDateString()}`)

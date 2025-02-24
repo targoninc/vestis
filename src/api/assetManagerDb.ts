@@ -236,12 +236,12 @@ export class AssetManagerDB {
 
         await db.runAsync('DELETE FROM jobs_assets WHERE job_id = ?', [id]);
         for (const asset of job.assets) {
-            await db.runAsync('INSERT INTO jobs_assets (job_id, asset_id) VALUES (?, ?)', [id, asset.id]);
+            await db.runAsync('INSERT INTO jobs_assets (job_id, asset_id, quantity) VALUES (?, ?, ?)', [id, asset.id, asset.quantity]);
         }
 
         await db.runAsync('DELETE FROM jobs_sets WHERE job_id = ?', [id]);
         for (const set of job.sets) {
-            await db.runAsync('INSERT INTO jobs_sets (job_id, set_id) VALUES (?, ?)', [id, set.id]);
+            await db.runAsync('INSERT INTO jobs_sets (job_id, set_id, quantity) VALUES (?, ?, ?)', [id, set.id, set.quantity]);
         }
     }
 
