@@ -3,6 +3,7 @@ import {Database, open} from "sqlite";
 import {initializeTables, insertDefaultTags} from "./defaultValues";
 import fs from "fs";
 import path from "path";
+import {CLI} from "./CLI";
 
 export class DB {
     private readonly db_path: string;
@@ -33,7 +34,7 @@ export class DB {
             initializeTables(db);
             insertDefaultTags(db);
 
-            console.log('DB started at ' + (db_path ?? ':memory:'));
+            CLI.log('DB started at ' + (db_path ?? ':memory:'));
         });
 
         return db;

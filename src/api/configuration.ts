@@ -3,9 +3,10 @@ import fs from "fs";
 import {Configuration} from "../models/Configuration";
 import {defaultConfig} from "../ui/enums/DefaultConfig";
 import {appDataPath} from "./appData";
+import {CLI} from "./CLI";
 
 const configPath = path.join(appDataPath, 'config.json');
-console.log('Config path: ' + configPath);
+CLI.log('Config path: ' + configPath);
 
 if (!fs.existsSync(appDataPath)) {
     fs.mkdirSync(appDataPath, {recursive: true});

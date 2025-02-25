@@ -1,3 +1,7 @@
+import {WindowsEventWriter} from "./events/WindowsEventWriter";
+import {OsEventWriter} from "./events/OsEventWriter";
+
+
 export class CLI {
     static withColor(text: string, color: number, newLine = true) {
         const timestamp = new Date().toISOString();
@@ -7,26 +11,32 @@ export class CLI {
 
     static error(text: string, newLine = true) {
         CLI.withColor(text, 31, newLine);
+        OsEventWriter.error(text, null);
     }
 
     static warning(text: string, newLine = true) {
         CLI.withColor(text, 33, newLine);
+        OsEventWriter.warn(text, null);
     }
 
     static info(text: string, newLine = true) {
         CLI.withColor(text, 36, newLine);
+        OsEventWriter.info(text, null);
     }
 
     static success(text: string, newLine = true) {
         CLI.withColor(text, 32, newLine);
+        OsEventWriter.info(text, null);
     }
 
     static debug(text: string, newLine = true) {
         CLI.withColor(text, 35, newLine);
+        OsEventWriter.info(text, null);
     }
 
     static log(text: string, newLine = true) {
         CLI.info(text, newLine);
+        OsEventWriter.info(text, null);
     }
 
     static write(text: string, newLine = true) {

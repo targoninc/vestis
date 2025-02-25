@@ -1,4 +1,5 @@
 import fs from "fs";
+import {CLI} from "./CLI";
 
 export class StorageCache {
     static path = "./storage/cache/";
@@ -10,7 +11,7 @@ export class StorageCache {
     }
 
     static set(key: string, value: any) {
-        console.log(`Cache file: ${this.path + key + ".cache"}`);
+        CLI.log(`Cache file: ${this.path + key + ".cache"}`);
         if (value && (value.constructor === Object || value.constructor === Array)) {
             value = JSON.stringify(value);
         }
