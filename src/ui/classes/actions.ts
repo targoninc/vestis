@@ -135,3 +135,19 @@ export function getUpdateSetMethod(set: AssetSet, selectedSetId: Signal<string> 
 export function editSet(set: AssetSet) {
     createModal(SetTemplates.setForm(set, "Edit set", getUpdateSetMethod(set)));
 }
+
+export function deleteJob(job: Partial<Job>) {
+    createModal(GenericTemplates.confirmModalWithContent("Delete job", create("div")
+        .classes("flex-v")
+        .children(
+            create("p")
+                .text(`Are you sure you want to delete the following job?`)
+                .build(),
+            GenericTemplates.propertyList(job)
+        ).build(), "Yes", "No", () => {
+        Api.deleteJobById(job.id).then(() => {
+            toast(`Job ${job.jobNumber} deleted`, null, ToastType.positive);
+            jobList.value = jobList.value.filter(j => j.id !== job.id);
+        });
+    }));
+}

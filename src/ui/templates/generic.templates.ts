@@ -644,11 +644,31 @@ export class GenericTemplates {
             ).build();
     }
 
+    static notSaved(isUpdate: boolean, notSaved: Signal<boolean>, notSaveable: Signal<boolean>, onRevert: () => void, onSave: () => void) {
+        const saveClass = compute((n, n2) => (n || !n2) ? "disabled" : "_", notSaveable, notSaved);
+
+        return create("div")
+            .classes("flex", "align-center")
+            .children(
+                GenericTemplates.buttonWithIcon("save", "Save", onSave, ["positive", saveClass]),
+                ifjs(notSaved, create("div")
+                    .classes("flex", "align-center")
+                    .children(
+                        ifjs(isUpdate, GenericTemplates.warning("Unsaved changes")),
+                        ifjs(isUpdate, GenericTemplates.buttonWithIcon("settings_backup_restore", "Revert", onRevert)),
+                    ).build()),
+            ).build();
+    }
+
     static warning(warning: StringOrSignal) {
         return create("div")
-            .classes("warning")
-            .text(warning)
-            .build();
+            .classes("warning", "flex", "align-center")
+            .children(
+                GenericTemplates.icon("warning"),
+                create("span")
+                    .text(warning)
+                    .build()
+            ).build();
     }
 
     static errorIndicator(errorCount: StringOrSignal) {

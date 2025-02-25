@@ -48,7 +48,7 @@ export class SetTemplates {
                 create("div")
                     .classes("flex")
                     .children(
-                        GenericTemplates.input("text", "search", search, "Search", null, "search", ["full-width", "search-input"], (value: string) => search.value = value),
+                        GenericTemplates.input(InputType.text, "search", search, "Search", null, "search", ["full-width", "search-input"], (value: string) => search.value = value),
                         GenericTemplates.buttonWithIcon("add", "New set", newSet, ["positive"], [], "N"),
                     ).build(),
                 create("table")
@@ -58,7 +58,7 @@ export class SetTemplates {
                             .children(
                                 create("tr")
                                     .children(
-                                        headers.map(header => GenericTemplates.tableListHeader(header.headerName, header.property, activeSortHeader, setList))
+                                        ...headers.map(header => GenericTemplates.tableListHeader(header.headerName, header.property, activeSortHeader, setList))
                                     ).build(),
                             ).build(),
                         signalMap<AssetSet>(filteredAssetList, create("tbody"), s => SetTemplates.set(s, selectedSetId))
@@ -138,7 +138,7 @@ export class SetTemplates {
             ).build();
     }
 
-    static setForm(set: Partial<AssetSet>, title: StringOrSignal, onSubmit: Callback<[AssetSet, any]> = (data, done) => {}, isModal = true) {
+    static setForm(set: Partial<AssetSet>, title: StringOrSignal, onSubmit: Callback<[AssetSet, any]> = () => {}, isModal = true) {
         const data = signal<AssetSet>({
             setName: "",
             assets: [],
@@ -147,6 +147,8 @@ export class SetTemplates {
             updatedAt: new Date(),
             ...set,
         });
+        const initialData = data.value;
+        const notSaved = compute(d => JSON.stringify(d) !== JSON.stringify(initialData), data);
         const setName = compute(val => val.setName, data);
         const assets = compute(val => val.assets, data);
         const availableAssets = compute((assets, allAssets) => {
@@ -155,13 +157,16 @@ export class SetTemplates {
                 });
         }, assets, assetList);
         const loading = signal(false);
-        const submitClass = compute((loading, setName): string => {
-            if (loading || setName === "") {
-                return "disabled";
-            } else {
-                return "_";
+        const errors = compute(d => {
+            const tmp = [];
+            if (d.setName === "") {
+                tmp.push("Set name is required.");
             }
-        }, loading, setName);
+
+            return tmp;
+        }, data);
+        const notSaveable = compute((l, e) => l || e.length > 0, loading, errors);
+        const isUpdate = !!(set && set.id);
 
         return create("div")
             .classes("flex-v")
@@ -217,10 +222,14 @@ export class SetTemplates {
                             };
                         }),
                     ).build(),
+                signalMap(errors, create("div").classes("flex-v"), GenericTemplates.error),
                 create("div")
                     .classes("flex", "align-center")
                     .children(
-                        GenericTemplates.buttonWithIcon("save", "Save", () => {
+                        ifjs(set && set.id, GenericTemplates.buttonWithIcon("delete", "Delete", () => deleteSet(set), ["negative"])),
+                        GenericTemplates.notSaved(isUpdate, notSaved, notSaveable, () => {
+                            data.value = initialData;
+                        }, () => {
                             loading.value = true;
                             onSubmit(data.value, () => {
                                 loading.value = false;
@@ -228,8 +237,7 @@ export class SetTemplates {
                                     closeModal();
                                 }
                             });
-                        }, ["positive", submitClass]),
-                        ifjs(set && set.id, GenericTemplates.buttonWithIcon("delete", "Delete", () => deleteSet(set), ["negative"])),
+                        }),
                         ifjs(loading, GenericTemplates.spinner()),
                     ).build()
             ).build();

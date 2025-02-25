@@ -11,13 +11,13 @@ import {Callback} from "../classes/types";
 import {assetList, jobList, setList} from "../classes/store";
 import {searchList} from "../classes/search";
 import {Tab} from "../../models/uiExtensions/Tab";
-import {newJob} from "../classes/actions";
+import {deleteJob, newJob} from "../classes/actions";
 import {JobItem} from "../../models/JobItem";
 import {typeIcons} from "../enums/TypeIcons";
 import {InputType} from "../lib/fjsc/src/Types";
 
 export class JobTemplates {
-    static jobForm(jobData: Partial<Job>, title: StringOrSignal, onSubmit: Callback<[Job, any]> = (data, done) => {}, isModal = true) {
+    static jobForm(jobData: Partial<Job>, title: StringOrSignal, onSubmit: Callback<[Job, any]> = () => {}, isModal = true) {
         const maxJobNumber = jobList.value.reduce((max: number, job) => Math.max(max, parseInt(job.jobNumber)), 0);
         const data = signal<Job>({
             jobNumber: (maxJobNumber + 1).toString(),
@@ -35,8 +35,9 @@ export class JobTemplates {
             updatedAt: new Date(),
             ...jobData,
         });
+        const initialData = data.value;
+        const notSaved = compute(d => JSON.stringify(d) !== JSON.stringify(initialData), data);
         const loading = signal(false);
-        const submitClass = signal("disabled");
         const invalid = signal(false);
         const errors = signal([]);
         const warnings = signal([]);
@@ -65,16 +66,7 @@ export class JobTemplates {
             }
         };
         data.subscribe(validateData);
-        const validate = () => {
-            if (loading.value || invalid.value) {
-                submitClass.value = "disabled";
-            } else {
-                submitClass.value = "_";
-            }
-        };
-        invalid.subscribe(validate);
-        loading.subscribe(validate);
-        validate();
+        const notSaveable = compute((l, i) => l || i, loading, invalid);
         validateData(data.value);
         const tabs = [
             JobTemplates.jobInfoTab(data),
@@ -93,6 +85,7 @@ export class JobTemplates {
             }
         ]);
         const activeTab = signal(tabDefinitions.value[0].id);
+        const isUpdate = !!(jobData && jobData.id);
 
         return create("div")
             .classes("flex-v")
@@ -111,7 +104,10 @@ export class JobTemplates {
                 create("div")
                     .classes("flex", "align-center")
                     .children(
-                        GenericTemplates.buttonWithIcon("save", "Save", () => {
+                        ifjs(isUpdate, JobTemplates.jobDeleteButton(jobData)),
+                        GenericTemplates.notSaved(isUpdate, notSaved, notSaveable, () => {
+                            data.value = initialData;
+                        }, () => {
                             loading.value = true;
                             onSubmit(data.value, () => {
                                 loading.value = false;
@@ -119,8 +115,7 @@ export class JobTemplates {
                                     closeModal();
                                 }
                             });
-                        }, ["positive", submitClass]),
-                        ifjs(jobData && jobData.id, JobTemplates.jobDeleteButton(jobData)),
+                        }),
                         ifjs(loading, GenericTemplates.spinner()),
                     ).build()
             ).build();
@@ -331,7 +326,7 @@ export class JobTemplates {
                 create("div")
                     .classes("flex", "align-center")
                     .children(
-                        GenericTemplates.input("text", "search", search, "Search", null, "search", ["full-width", "search-input"], (value: string) => search.value = value),
+                        GenericTemplates.input(InputType.text, "search", search, "Search", null, "search", ["full-width", "search-input"], (value: string) => search.value = value),
                         GenericTemplates.buttonWithIcon("add", "Add job", newJob, ["positive"], [], "N"),
                     ).build(),
                 create("table")
@@ -377,21 +372,7 @@ export class JobTemplates {
     }
 
     static jobDeleteButton(job: Partial<Job>) {
-        return GenericTemplates.buttonWithIcon("delete", "Delete", () => {
-            createModal(GenericTemplates.confirmModalWithContent("Delete job", create("div")
-                .classes("flex-v")
-                .children(
-                    create("p")
-                        .text(`Are you sure you want to delete the following job?`)
-                        .build(),
-                    GenericTemplates.propertyList(job)
-                ).build(), "Yes", "No", () => {
-                Api.deleteJobById(job.id).then(() => {
-                    toast(`Job ${job.jobNumber} deleted`, null, ToastType.positive);
-                    jobList.value = jobList.value.filter(j => j.id !== job.id);
-                });
-            }));
-        }, ["negative"]);
+        return GenericTemplates.buttonWithIcon("delete", "Delete", () => deleteJob(job), ["negative"]);
     }
 
     static jobTypeIndicator(data: Signal<Job>) {

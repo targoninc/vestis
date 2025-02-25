@@ -58,7 +58,7 @@ export class AssetTemplates {
                 create("div")
                     .classes("flex", "align-center")
                     .children(
-                        GenericTemplates.input("text", "search", search, "Search", null, "search", ["full-width", "search-input"], (value: string) => search.value = value),
+                        GenericTemplates.input(InputType.text, "search", search, "Search", null, "search", ["full-width", "search-input"], (value: string) => search.value = value),
                         create("div")
                             .classes("flex")
                             .children(GenericTemplates.buttonWithIcon("add", "New asset", newAsset, ["positive"], [], "N"))
@@ -202,6 +202,8 @@ export class AssetTemplates {
             tags: [],
             ...assetData,
         });
+        const initialData = data.value;
+        const notSaved = compute(d => JSON.stringify(d) !== JSON.stringify(initialData), data);
         const type = compute(val => val.type, data);
         const typeIcon = compute(type => AssetTypes[type].icon, type);
         const manufacturer = compute(val => val.manufacturer, data);
@@ -222,8 +224,8 @@ export class AssetTemplates {
             return null;
         }, data);
         const loading = signal(false);
-        const submitClass = compute((l, e) => l || e ? "disabled" : "_", loading, error);
-        const assetIsSaved = !!(assetData && assetData.id);
+        const notSaveable = compute((l, e) => l || !!e, loading, error);
+        const isUpdate = !!(assetData && assetData.id);
 
         return create("div")
             .classes("flex-v")
@@ -283,13 +285,13 @@ export class AssetTemplates {
                 create("div")
                     .classes("flex", "align-center")
                     .children(
-                        GenericTemplates.input<string>("text", "uniqueString", uniqueString, "Unique String", "Unique String", "uniqueString", [], (newValue) => {
+                        GenericTemplates.input<string>(InputType.text, "uniqueString", uniqueString, "Unique String", "Unique String", "uniqueString", [], (newValue) => {
                             data.value = {
                                 ...data.value,
                                 uniqueString: newValue ?? "",
                             };
                         }),
-                        GenericTemplates.input<number>("number", "count", count, "Owned count", "Owned count", "count", [], (newValue) => {
+                        GenericTemplates.input<number>(InputType.number, "count", count, "Owned count", "Owned count", "count", [], (newValue) => {
                             data.value = {
                                 ...data.value,
                                 count: newValue ?? 0,
@@ -305,7 +307,7 @@ export class AssetTemplates {
                                 priceInCents: newValue ?? 0,
                             };
                         }),
-                        GenericTemplates.input<number>("number", "dayRateFactor", dayRateFactor, "Day rate factor", "Day rate factor", "dayRateFactor", [], (newValue) => {
+                        GenericTemplates.input<number>(InputType.number, "dayRateFactor", dayRateFactor, "Day rate factor", "Day rate factor", "dayRateFactor", [], (newValue) => {
                             data.value = {
                                 ...data.value,
                                 dayRateFactor: newValue ?? 0,
@@ -335,7 +337,10 @@ export class AssetTemplates {
                 create("div")
                     .classes("flex", "align-center")
                     .children(
-                        GenericTemplates.buttonWithIcon("save", "Save", () => {
+                        ifjs(isUpdate, GenericTemplates.buttonWithIcon("delete", "Delete", () => deleteAsset(assetData), ["negative"])),
+                        GenericTemplates.notSaved(isUpdate, notSaved, notSaveable, () => {
+                            data.value = initialData;
+                        }, () => {
                             loading.value = true;
                             onSubmit(data.value, () => {
                                 loading.value = false;
@@ -343,11 +348,10 @@ export class AssetTemplates {
                                     closeModal();
                                 }
                             });
-                        }, ["positive", submitClass]),
-                        ifjs(assetIsSaved, GenericTemplates.buttonWithIcon("delete", "Delete", () => deleteAsset(assetData), ["negative"])),
+                        }),
                         ifjs(loading, GenericTemplates.spinner()),
                     ).build(),
-                ifjs(assetIsSaved, GenericTemplates.buttonWithIcon("switch_access_shortcut_add", "Create set with asset", () => {
+                ifjs(isUpdate, GenericTemplates.buttonWithIcon("switch_access_shortcut_add", "Create set with asset", () => {
                     newSet({
                         setName: `${assetData.manufacturer} ${assetData.model} set`,
                         assets: [assetData as Asset]
