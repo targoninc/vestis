@@ -4,7 +4,6 @@ import {Api} from "../classes/api";
 import {toast} from "../classes/ui";
 import {JobTemplates} from "./job.templates";
 import {DayRateCalculator} from "../classes/dayRateCalculator";
-import {AvailabilityCalculator} from "../classes/availabilityCalculator";
 import {compute, signal, Signal} from "../lib/fjsc/src/signals";
 import {Job} from "../../models/Job";
 import {create, ifjs, signalMap} from "../lib/fjsc/src/f2";
@@ -14,7 +13,8 @@ import {compareJobsByStartTime, getMaxDaysFromJobs} from "../classes/jobUtils";
 
 export class CalendarTemplates {
     static calendar(activePage: Signal<string>) {
-        const noPastJobs = compute(jobs => jobs.filter(job => new Date(job.endTime).getTime() >= dayAsTime(0, 0)), jobList);
+        const dayOffset = signal(0);
+        const noPastJobs = compute((jobs, offset) => jobs.filter(job => new Date(job.endTime).getTime() >= dayAsTime(offset, 0)), jobList, dayOffset);
         const orderedJobs = compute(jobs => jobs.sort(compareJobsByStartTime), noPastJobs);
         const maxDaysFromNow = compute(getMaxDaysFromJobs, noPastJobs);
         const pixelsPerDay = 200;
@@ -29,35 +29,59 @@ export class CalendarTemplates {
         });
 
         return create("div")
-            .classes("flex", "flex-grow", "no-gap", "timeline-jobs-container")
+            .classes("flex-v", "flex-grow")
             .children(
-                CalendarTemplates.gridLines(maxDaysFromNow, pixelsPerDay, 2),
-                CalendarTemplates.dates(maxDaysFromNow, pixelsPerDay),
-                signalMap<Job>(orderedJobs, create("div").classes("timeline-jobs"), (job, i) => CalendarTemplates.job(job, orderedJobs, i, pixelsPerDay)),
+                create("div")
+                    .classes("flex", "align-center")
+                    .children(
+                        GenericTemplates.buttonWithIcon("today", "Today", () => {
+                            dayOffset.value = 0;
+                        }),
+                        GenericTemplates.buttonWithIcon("chevron_left", "Previous week", () => {
+                            dayOffset.value = dayOffset.value - 7;
+                        }),
+                        GenericTemplates.buttonWithIcon("chevron_right", "Next week", () => {
+                            dayOffset.value = dayOffset.value + 7;
+                        }),
+                        GenericTemplates.buttonWithIcon("chevron_left", "Previous day", () => {
+                            dayOffset.value = dayOffset.value - 1;
+                        }),
+                        GenericTemplates.buttonWithIcon("chevron_right", "Next day", () => {
+                            dayOffset.value = dayOffset.value + 1;
+                        }),
+                    ).build(),
+                create("div")
+                    .classes("flex", "flex-grow", "no-gap", "timeline-jobs-container")
+                    .children(
+                        CalendarTemplates.gridLines(maxDaysFromNow, pixelsPerDay, 2),
+                        CalendarTemplates.dates(dayOffset, maxDaysFromNow, pixelsPerDay),
+                        signalMap<Job>(orderedJobs, create("div").classes("timeline-jobs"), (job, i) => CalendarTemplates.job(job, dayOffset, i, pixelsPerDay)),
+                    ).build()
             ).build();
     }
 
-    static dates(maxDaysFromNow: Signal<number>, pixelsPerDay: number) {
+    static dates(dayOffset: Signal<number>, maxDaysFromNow: Signal<number>, pixelsPerDay: number) {
         const container = create("div")
             .classes("timeline-dates")
             .build();
-        const renderDates = (days: number, distance: number) => {
+        const renderDates = () => {
+            const offset = dayOffset.value;
+            const days = maxDaysFromNow.value;
             const dates = Array.from({length: days}, (_, i) => {
-                const date = new Date(dayAsTime(i, 0));
+                const date = new Date(dayAsTime(i + offset, 0));
                 return create("div")
                     .classes("timeline-date")
-                    .styles("left", i * distance + "px")
+                    .styles("left", i * pixelsPerDay + "px")
                     .text(date.toLocaleDateString())
                     .build();
             });
             container.replaceChildren(...dates);
         }
-        maxDaysFromNow.subscribe(days => {
-            renderDates(days, pixelsPerDay);
-        });
+        maxDaysFromNow.subscribe(renderDates);
+        dayOffset.subscribe(renderDates);
 
         if (maxDaysFromNow.value) {
-            renderDates(maxDaysFromNow.value, pixelsPerDay);
+            renderDates();
         }
 
         return container;
@@ -88,7 +112,7 @@ export class CalendarTemplates {
         return container;
     }
 
-    static job(job: Job, jobs: Signal<Job[]>, index: number, pixelsPerDay: number) {
+    static job(job: Job, dayOffset: Signal<number>, index: number, pixelsPerDay: number) {
         const twelveHours = 12 * 60 * 60 * 1000;
         const localOffset = new Date().getTimezoneOffset() * 60 * 1000;
         const startTime = new Date(job.startTime).getTime();
@@ -100,22 +124,26 @@ export class CalendarTemplates {
         const contact = job.contact;
         const disposition = job.disposition;
         const timeStatic = 1000 * 60 * 60 * 24;
-        const leftOffset = Math.round((startTime + localOffset + twelveHours - dayAsTime()) / timeStatic * pixelsPerDay);
-        const startMoved = leftOffset < 0;
-        let width = Math.round((endTime - startTime) / timeStatic * pixelsPerDay);
-        if (leftOffset < 0) {
-            width += leftOffset;
-        }
+        const leftOffsetNumeric = compute(offset => Math.round((startTime + localOffset + twelveHours - dayAsTime(offset)) / timeStatic * pixelsPerDay), dayOffset);
+        const startMoved = compute(lon => lon < 0, leftOffsetNumeric);
+        const width = compute(lon => {
+            let widthTmp = Math.round((endTime - startTime) / timeStatic * pixelsPerDay);
+            if (lon < 0) {
+                widthTmp += lon;
+            }
+            return widthTmp + "px";
+        }, leftOffsetNumeric);
+
         const type = disposition ? "disposition" : "draft";
         const height = 40;
         const offset = 4;
 
         return create("div")
             .classes("timeline-job", "flex", type)
-            .styles("left", Math.max(0, leftOffset) + "px")
+            .styles("left", compute(lon => Math.max(0, lon) + "px", leftOffsetNumeric))
             .styles("top", (index * (height + offset)) + 30 + "px")
             .styles("height", height + "px")
-            .styles("width", width + "px")
+            .styles("width", width)
             .children(
                 create("div")
                     .classes("timeline-job-content", "flex")

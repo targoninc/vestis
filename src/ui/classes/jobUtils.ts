@@ -8,7 +8,7 @@ export function getMaxDaysFromJobs(jobs: Job[]) {
         const diff = (endTime - dayAsTime(0, 0)) / 1000 / 60 / 60 / 24;
         max = Math.max(max, diff);
     }
-    return max;
+    return Math.max(max, 14);
 }
 
 export function compareJobsByStartTime(a: Job, b: Job) {
