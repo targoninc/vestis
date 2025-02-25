@@ -14,8 +14,9 @@ import {compareJobsByStartTime, getDayOffset, getMaxDaysFromJobs} from "../class
 export class CalendarTemplates {
     static calendar(activePage: Signal<string>) {
         const dayOffset = signal(0);
-        const viewOffset = compute(o => o, dayOffset);
         const viewLimitDays = 14;
+        const viewDayOffset = -1;
+        const viewOffset = compute(o => o + viewDayOffset, dayOffset);
         const noPastJobs = compute((jobs, offset) => {
             return jobs.filter(job => {
                 const isAfterStartDate = new Date(job.endTime).getTime() >= dayAsTime(offset, 0);
@@ -64,7 +65,7 @@ export class CalendarTemplates {
                         create("div")
                             .classes("flex-v")
                             .children(
-                                CalendarTemplates.dateOverview(dayOffset, viewLimitDays),
+                                CalendarTemplates.dateOverview(dayOffset, viewLimitDays, viewDayOffset),
                                 signalMap(orderedJobs, create("div").classes("flex-v"), job => {
                                     return create("div")
                                         .classes("card", "clickable", "flex")
@@ -90,7 +91,7 @@ export class CalendarTemplates {
             ).build();
     }
 
-    static dateOverview(dayOffset: Signal<number>, viewLimitDays: number) {
+    static dateOverview(dayOffset: Signal<number>, viewLimitDays: number, viewDayOffset: number) {
         const rows = 5;
         const cols = 7;
         const today = date();
@@ -125,7 +126,7 @@ export class CalendarTemplates {
                                 const isToday = day(0, 0) === day(offset, 0);
                                 const activeClass = compute(o => o === offset ? "active" : "_", dayOffset);
                                 const inViewClass = compute(o => {
-                                    if (offset >= o && offset < o + viewLimitDays) {
+                                    if (offset >= (o + viewDayOffset) && offset < (o + viewLimitDays + viewDayOffset)) {
                                         return "outlined";
                                     }
                                     return "_";
