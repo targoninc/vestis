@@ -560,6 +560,8 @@ input.invisible-input {
     position: relative;
     height: 100%;
     background: var(--bg);
+    border-radius: var(--input-border-radius);
+    border: var(--input-border-width) solid var(--bg-4);
 }
 
 .grid-lines, .timeline-dates {
