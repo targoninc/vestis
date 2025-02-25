@@ -40,3 +40,12 @@ export function getPastDateWarning(date: number) {
     }
     return null;
 }
+
+export function getWeekDayNames() {
+    const days = Array.from({length: 7}, (_, i) => i);
+    const today = date(0, 0);
+    const weekday = today.getDay();
+    return days.map(i => {
+        return date(i - weekday + 1, 0).toLocaleString("default", { weekday: "narrow" });
+    });
+}

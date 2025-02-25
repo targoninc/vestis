@@ -1,4 +1,4 @@
-import {date, day, dayAsTime, getPastDateWarning} from "../classes/time";
+import {date, day, dayAsTime, getPastDateWarning, getWeekDayNames} from "../classes/time";
 import {GenericTemplates} from "./generic.templates";
 import {Api} from "../classes/api";
 import {toast} from "../classes/ui";
@@ -91,7 +91,8 @@ export class CalendarTemplates {
             const offset = Math.floor(rows / 2) * cols;
             return (i * 7 + j) - offset - weekday;
         }
-        const headers = ["M", "T", "W", "T", "F", "S", "S"];
+        const dayNames = getWeekDayNames();
+        const headers = [""].concat(dayNames);
 
         return create("div")
             .classes("date-overview")
@@ -108,15 +109,22 @@ export class CalendarTemplates {
                     return create("div")
                         .classes("flex", "align-center", "date-overview-row")
                         .children(
+                            CalendarTemplates.dateOverviewMonthIndicator(getOffset(i, 0)),
                             ...Array.from({length: cols}, (_, j) => {
                                 const offset = getOffset(i, cols - j);
                                 const curDay = date(offset, 0);
                                 const onlyDay = curDay.getDate();
                                 const isToday = day(0, 0) === day(offset, 0);
                                 const activeClass = compute(o => o === offset ? "active" : "_", dayOffset);
+                                const inViewClass = compute(o => {
+                                    if (offset >= o && offset < o + 14) {
+                                        return "outlined";
+                                    }
+                                    return "_";
+                                }, dayOffset);
 
                                 return create("div")
-                                    .classes("date-overview-day", isToday ? "today" : "_", activeClass)
+                                    .classes("date-overview-day", isToday ? "today" : "_", activeClass, inViewClass)
                                     .onclick(() => {
                                         dayOffset.value = offset;
                                     })
@@ -126,6 +134,15 @@ export class CalendarTemplates {
                         ).build();
                 }),
             ).build();
+    }
+
+    private static dateOverviewMonthIndicator(offset: number) {
+        const month = date(offset).toLocaleString("default", { month: "short" });
+
+        return create("div")
+            .classes("date-overview-header")
+            .text(month)
+            .build();
     }
 
     static dates(dayOffset: Signal<number>, maxDaysFromNow: Signal<number>, pixelsPerDay: number) {
