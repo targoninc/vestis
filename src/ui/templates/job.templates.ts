@@ -478,7 +478,7 @@ export class JobTemplates {
                             .classes("flex", "align-center")
                             .children(
                                 ifjs(hasContent, GenericTemplates.buttonWithIcon(icon, null, () => expanded.value = !expanded.value, ["round-button"])),
-                                JobTemplates.itemName(item),
+                                GenericTemplates.itemName(item),
                             ).build(),
                         create("div")
                             .classes("flex", "align-center")
@@ -500,30 +500,13 @@ export class JobTemplates {
                                     return create("div")
                                         .classes("flex", "space-between", "secondary-card", isFirst ? "no-radius-top" : (isLast ? "no-radius-bottom" : "_"))
                                         .children(
-                                            JobTemplates.itemName(jobItemFromAsset(a, jobId.value)),
+                                            GenericTemplates.itemName(jobItemFromAsset(a, jobId.value)),
                                             GenericTemplates.quantityChanger(a.id, false, a.quantity, a.count),
                                         ).build();
                                 })
                             ).build(),
                     ).build())
             ).build();
-    }
-
-    private static itemName(item: JobItem) {
-        return create("span")
-            .classes("title", "clickable")
-            .onclick(() => {
-                switch (item.type) {
-                    case "asset":
-                        editAsset(item.asset);
-                        break;
-                    case "set":
-                        editSet(item.set);
-                        break;
-                }
-            })
-            .text(item.name)
-            .build();
     }
 
     private static itemSearch(availableItems: Signal<JobItem[]>, onAdd: (newItem: JobItem) => void) {

@@ -6,8 +6,9 @@ import {Callback} from "../classes/types";
 import {compute, signal, Signal} from "../lib/fjsc/src/signals";
 import {create, ifjs, signalMap, StringOrSignal} from "../lib/fjsc/src/f2";
 import {assetList, setList} from "../classes/store";
-import {deleteSet, editSet, getUpdateSetMethod, newSet} from "../classes/actions";
+import {deleteSet, getUpdateSetMethod, newSet} from "../classes/actions";
 import {AssetTemplates} from "./asset.templates";
+import {InputType} from "../lib/fjsc/src/Types";
 
 export class SetTemplates {
     static setList(setList: Signal<AssetSet[]>, selectedSetId: Signal<string>) {
@@ -171,7 +172,7 @@ export class SetTemplates {
                 create("div")
                     .classes("flex", "align-center")
                     .children(
-                        GenericTemplates.input<string>("text", "setName", setName, "Set name", "Set name", "setName", [], (newValue) => {
+                        GenericTemplates.input<string>(InputType.text, "setName", setName, "Set name", "Set name", "setName", [], (newValue) => {
                             data.value = {
                                 ...data.value,
                                 setName: newValue ?? "",
@@ -187,7 +188,10 @@ export class SetTemplates {
                                     ...data.value,
                                     assets: [
                                         ...data.value.assets,
-                                        newAsset,
+                                        {
+                                            ...newAsset,
+                                            quantity: 1
+                                        },
                                     ],
                                 };
                                 closeModal(true);
@@ -250,7 +254,7 @@ export class SetTemplates {
                 create("div")
                     .classes("flex", "align-center")
                     .children(
-                        GenericTemplates.input("text", "search", search, "Search", null, "search", ["full-width", "search-input"], (value: string) => search.value = value),
+                        GenericTemplates.input(InputType.text, "search", search, "Search", null, "search", ["full-width", "search-input"], (value: string) => search.value = value),
                     ).build(),
                 create("table")
                     .children(
@@ -320,7 +324,7 @@ export class SetTemplates {
                 create("div")
                     .classes("flex", "align-center")
                     .children(
-                        GenericTemplates.input("text", "search", search, "Search", null, "search", ["full-width", "search-input"], (value: string) => search.value = value),
+                        GenericTemplates.input(InputType.text, "search", search, "Search", null, "search", ["full-width", "search-input"], (value: string) => search.value = value),
                     ).build(),
                 create("table")
                     .children(
@@ -328,7 +332,7 @@ export class SetTemplates {
                             .children(
                                 create("tr")
                                     .children(
-                                        headers.map(header => GenericTemplates.tableListHeader(header.headerName, header.propertyName, activeSortHeader, setList))
+                                    ...headers.map(header => GenericTemplates.tableListHeader(header.headerName, header.propertyName, activeSortHeader, setList))
                                     ).build(),
                             ).build(),
                         signalMap<AssetSet>(filteredSets, create("tbody"), set => {
@@ -358,7 +362,7 @@ export class SetTemplates {
 
     static setCard(selectedSet: Signal<AssetSet>, selectedSetId: Signal<string>) {
         const form = compute(set => {
-            return SetTemplates.setForm(set, "Edit set", () => getUpdateSetMethod(set, selectedSetId), false);
+            return SetTemplates.setForm(set, "Edit set", getUpdateSetMethod(set, selectedSetId), false);
         }, selectedSet);
 
         return create("div")

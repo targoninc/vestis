@@ -90,9 +90,14 @@ export function getCountInJobs(jobs: Job[], id: string, excludeJobId: string|nul
         }
 
         let add = 0;
-        const assetInSet = job.sets.find(i => i.assets.some(a => a.id === id));
-        if (assetInSet) {
-            add += assetInSet.quantity;
+        const assetsSet = job.sets.find(i => i.assets.some(a => a.id === id));
+        if (assetsSet) {
+            const asset = assetsSet.assets.find(i => i.id === id);
+            if (assetsSet.quantity) {
+                add += assetsSet.quantity * asset.quantity;
+            } else {
+                add += asset.quantity;
+            }
         }
 
         const asset = job.assets.find(i => i.id === id);

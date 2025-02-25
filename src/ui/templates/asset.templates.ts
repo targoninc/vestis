@@ -1,18 +1,16 @@
 import {GenericTemplates} from "./generic.templates";
-import {closeModal, toast} from "../classes/ui";
-import {Api} from "../classes/api";
+import {closeModal} from "../classes/ui";
 import {AssetTypes, Callback} from "../classes/types";
 import {searchList} from "../classes/search";
 import {DayRateCalculator} from "../classes/dayRateCalculator";
 import {Asset} from "../../models/Asset";
-import {ApiResponse} from "../classes/api.base";
 import {compute, Signal, signal} from "../lib/fjsc/src/signals";
 import {create, ifjs, signalMap} from "../lib/fjsc/src/f2";
-import {ToastType} from "../enums/ToastType";
 import {Tag} from "../../models/Tag";
 import {assetList, jobList} from "../classes/store";
-import {deleteAsset, editAsset, getUpdateAssetMethod, newAsset, newSet} from "../classes/actions";
-import {getCountInJobs} from "../classes/availabilityCalculator";
+import {deleteAsset, getUpdateAssetMethod, newAsset, newSet} from "../classes/actions";
+import {getCountInJobs, jobItemFromAsset} from "../classes/availabilityCalculator";
+import {InputType} from "../lib/fjsc/src/Types";
 
 export class AssetTemplates {
     static assetList(assetList: Signal<Asset[]>, selectedAssetId: Signal<string>) {
@@ -375,7 +373,7 @@ export class AssetTemplates {
                 create("div")
                     .classes("flex", "align-center")
                     .children(
-                        GenericTemplates.input("text", "search", search, "Search", null, "search", ["full-width", "search-input"], (value: string) => search.value = value),
+                        GenericTemplates.input(InputType.text, "search", search, "Search", null, "search", ["full-width", "search-input"], (value: string) => search.value = value),
                     ).build(),
                 create("table")
                     .children(
@@ -423,7 +421,7 @@ export class AssetTemplates {
                 create("div")
                     .classes("flex", "align-center")
                     .children(
-                        GenericTemplates.input("text", "search", search, "Search", null, "search", ["full-width", "search-input"], (value: string) => search.value = value),
+                        GenericTemplates.input(InputType.text, "search", search, "Search", null, "search", ["full-width", "search-input"], (value: string) => search.value = value),
                     ).build(),
                 create("table")
                     .children(
@@ -432,10 +430,7 @@ export class AssetTemplates {
                                 create("tr")
                                     .children(
                                         create("th")
-                                            .text("Manufacturer")
-                                            .build(),
-                                        create("th")
-                                            .text("Model")
+                                            .text("Name")
                                             .build(),
                                         create("th")
                                             .text("Serial")
@@ -462,10 +457,7 @@ export class AssetTemplates {
         return create("tr")
             .children(
                 create("td")
-                    .text(asset.manufacturer)
-                    .build(),
-                create("td")
-                    .text(asset.model)
+                    .children(GenericTemplates.itemName(jobItemFromAsset(asset)))
                     .build(),
                 create("td")
                     .text(asset.serialNumber)
@@ -475,7 +467,7 @@ export class AssetTemplates {
                     .build(),
                 create("td")
                     .children(
-                        GenericTemplates.quantityChanger(asset.id, true, asset.quantity, asset.count - getCountInJobs(jobList.value, asset.id), onQuantityChange),
+                        GenericTemplates.quantityChanger(asset.id, true, asset.quantity, asset.count, onQuantityChange),
                     ).build(),
                 create("td")
                     .children(
