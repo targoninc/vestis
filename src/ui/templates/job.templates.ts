@@ -436,7 +436,10 @@ export class JobTemplates {
                                         ...job.value,
                                         assets: [
                                             ...job.value.assets,
-                                            newItem.asset,
+                                            {
+                                                ...newItem.asset,
+                                                quantity: 1,
+                                            },
                                         ],
                                     };
                                 } else {
@@ -444,7 +447,10 @@ export class JobTemplates {
                                         ...job.value,
                                         sets: [
                                             ...job.value.sets,
-                                            newItem.set
+                                            {
+                                                ...newItem.set,
+                                                quantity: 1,
+                                            },
                                         ],
                                     };
                                 }
@@ -485,7 +491,7 @@ export class JobTemplates {
                             ).build()
                     ).build(),
                 ifjs(hasContent, create("div")
-                    .classes("expanded-content", contentClass)
+                    .classes("expanded-content", "transition-height", contentClass)
                     .children(
                         create("div")
                             .classes("flex-v", "no-gap")
@@ -498,7 +504,7 @@ export class JobTemplates {
                                         .classes("flex", "space-between", "secondary-card", isFirst ? "no-radius-top" : (isLast ? "no-radius-bottom" : "_"))
                                         .children(
                                             GenericTemplates.itemName(jobItemFromAsset(a, jobId.value)),
-                                            GenericTemplates.quantityChanger(a.id, false, a.quantity, a.count),
+                                            GenericTemplates.quantityChanger(a.id, false, a.quantity * item.quantity, a.count),
                                         ).build();
                                 })
                             ).build(),

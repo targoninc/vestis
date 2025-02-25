@@ -351,12 +351,19 @@ export class AssetTemplates {
                         }),
                         ifjs(loading, GenericTemplates.spinner()),
                     ).build(),
-                ifjs(isUpdate, GenericTemplates.buttonWithIcon("switch_access_shortcut_add", "Create set with asset", () => {
-                    newSet({
-                        setName: `${assetData.manufacturer} ${assetData.model} set`,
-                        assets: [assetData as Asset]
-                    })
-                }))
+                ifjs(isUpdate, create("div")
+                    .classes("flex", "align-center")
+                    .children(
+                        GenericTemplates.buttonWithIcon("switch_access_shortcut_add", "Create set with asset", () => {
+                            newSet({
+                                setName: `${assetData.manufacturer} ${assetData.model} set`,
+                                assets: [assetData as Asset]
+                            })
+                        }),
+                        GenericTemplates.buttonWithIcon("content_copy", "Copy ID", () => {
+                            navigator.clipboard.writeText(assetData.id);
+                        })
+                    ).build())
             ).build();
     }
 

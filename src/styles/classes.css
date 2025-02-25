@@ -172,7 +172,7 @@
     box-sizing: border-box;
     width: 20vw;
     min-width: max-content;
-    transition: width 0.2s ease;
+    transition: width var(--animation-duration) ease;
 }
 
 .panel, .bordered-panel, .card, .secondary-card {
@@ -233,14 +233,17 @@
     background: var(--bg-4);
 }
 
+.transition-height {
+    transition: height var(--animation-duration) ease;
+}
+
 .expanded-content {
     height: 0;
     overflow: hidden;
 }
 
 .expanded-content.expanded {
-    height: initial;
-    overflow: auto;
+    height: 100%;
 }
 
 .round-button {
@@ -264,6 +267,11 @@
 
 .segmented-text span.dark {
     background: var(--bg);
+    color: var(--text);
+}
+
+.segmented-text span.invalid {
+    background: var(--red);
     color: var(--text);
 }
 
@@ -343,7 +351,7 @@ iframe {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    transition: left .2s ease;
+    transition: left var(--animation-duration) ease;
     left: 6px;
 }
 

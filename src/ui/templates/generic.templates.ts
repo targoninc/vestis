@@ -12,6 +12,7 @@ import {TextSegment} from "../../models/uiExtensions/TextSegment";
 import {InputType} from "../lib/fjsc/src/Types";
 import {JobItem} from "../../models/JobItem";
 import {editAsset, editSet} from "../classes/actions";
+import {TextSegmentType} from "../enums/TextSegmentType";
 
 export class GenericTemplates {
     static input<T>(type: InputType, name: string, value: any, placeholder: StringOrSignal, label: StringOrSignal, id: any, classes: StringOrSignal[] = [],
@@ -62,6 +63,8 @@ export class GenericTemplates {
                 addClass.value = "_";
             }
         });
+        const quantityIsInvalid = compute(q => q < 1 || q > maxQuantity, quantity);
+        const quantityClass = compute(invalid => invalid ? TextSegmentType.invalid : TextSegmentType.dark, quantityIsInvalid);
 
         return create("div")
             .classes("flex", "align-center")
@@ -75,11 +78,11 @@ export class GenericTemplates {
                 GenericTemplates.segmentedText([
                     {
                         text: quantity,
-                        type: "dark",
+                        type: quantityClass,
                     },
                     {
                         text: maxQuantity.toString(),
-                        type: "light",
+                        type: TextSegmentType.light,
                     },
                 ]),
             ).build();

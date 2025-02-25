@@ -7,6 +7,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import {DB} from "./api/db";
 import {getConfig} from "./api/configuration";
+import {CLI} from "./api/CLI";
 
 dotenv.config();
 

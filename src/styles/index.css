@@ -64,6 +64,8 @@
     --text-4: var(--white-4);
     --neutral-light: var(--grey-light);
     --neutral-dark: var(--grey-dark);
+
+    --animation-duration: 0.2s;
 }
 
 .background {

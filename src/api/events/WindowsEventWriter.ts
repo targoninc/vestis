@@ -1,48 +1,33 @@
-import winston from 'winston';
-import SyslogTransport from 'winston-syslog';
+import {exec } from "node:child_process";
 import {EventWriter} from "./EventWriter";
+import {EventType} from "./EventType";
 
-// Define your application name and Windows Event Log settings
 const APP_NAME = 'Vestis';
-const LOG_HOST = 'localhost';
-const LOG_PORT = 514; // Standard syslog port
 
-// Create a Winston logger with Syslog transport configured for Windows
-const log = winston.createLogger({
-    level: 'info',
-    format: winston.format.combine(
-        winston.format.timestamp(),
-        winston.format.json()
-    ),
-    defaultMeta: { service: APP_NAME },
-    transports: [
-        // Console transport for development
-        new winston.transports.Console({
-            format: winston.format.simple(),
-        }),
-        // Syslog transport configured for Windows Event Log
-        new SyslogTransport.Syslog({
-            host: LOG_HOST,
-            port: LOG_PORT,
-            protocol: 'udp4',
-            facility: "local0",
-            localhost: process.env.COMPUTERNAME || 'localhost',
-            type: 'RFC5424',
-            app_name: APP_NAME,
-        }),
-    ],
-});
+if (process.platform === 'win32') {
+    const createSourceCommand = `powershell.exe if (-not (Get-EventLog -LogName Application -Source '${APP_NAME}' -ErrorAction SilentlyContinue))
+{
+    New-EventLog -LogName Application -Source '${APP_NAME}';
+}`;
+    exec(createSourceCommand);
+}
 
 export class WindowsEventWriter extends EventWriter {
+    static logEntry(eventType: 'Information' | 'Error' | 'Warning', message: string): void {
+        const cleanMessage = message.replaceAll("'", "''");
+        const cmd = `powershell.exe Write-EventLog -LogName Application -Source '${APP_NAME}' -EntryType ${eventType} -EventId ${EventType.Unknown} -Message '${cleanMessage}'`;
+        exec(cmd);
+    }
+
     static info(message: string, data: any): void {
-        log.info(message);
+        this.logEntry("Information", message);
     }
 
     static error(message: string, data: any): void {
-        log.error(message);
+        this.logEntry("Error", message);
     }
 
     static warn(message: string, data: any): void {
-        log.warn(message);
+        this.logEntry("Warning", message);
     }
 }
