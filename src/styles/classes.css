@@ -504,6 +504,15 @@ input.invisible-input {
 
 .search-panel {
     max-height: 50dvh;
+    overflow-y: auto;
+}
+
+.search-header {
+    padding: var(--gap-h) var(--gap-v);
+    background: var(--bg-2);
+    position: sticky;
+    top: -1px;
+    z-index: 1;
 }
 
 .full-width-modal {

@@ -36,8 +36,6 @@ export function searchList<T>(properties: string[], array: Array<T>, searchStrin
                         return true;
                     }
                 }
-            } else {
-                console.log("Object is missing property", key, obj);
             }
         }
 

@@ -14,6 +14,7 @@ import {Tab} from "../../models/uiExtensions/Tab";
 import {editAsset, editSet, newJob} from "../classes/actions";
 import {JobItem} from "../../models/JobItem";
 import {typeIcons} from "../enums/TypeIcons";
+import {InputType} from "../lib/fjsc/src/Types";
 
 export class JobTemplates {
     static jobForm(jobData: Partial<Job>, title: StringOrSignal, onSubmit: Callback<[Job, any]> = (data, done) => {}, isModal = true) {
@@ -148,33 +149,7 @@ export class JobTemplates {
                 create("h2")
                     .text("Items")
                     .build(),
-                create("div")
-                    .classes("flex", "align-center")
-                    .children(
-                        GenericTemplates.buttonWithIcon("add", "Add item", () => {
-                            createModal(JobTemplates.itemSearch(availableItems, (newItem: JobItem) => {
-                                if (newItem.type === "asset") {
-                                    data.value = {
-                                        ...data.value,
-                                        assets: [
-                                            ...data.value.assets,
-                                            newItem.asset,
-                                        ],
-                                    };
-                                } else {
-                                    data.value = {
-                                        ...data.value,
-                                        sets: [
-                                            ...data.value.sets,
-                                            newItem.set
-                                        ],
-                                    };
-                                }
-                                closeModal(true);
-                            }));
-                        }, ["positive"]),
-                    ).build(),
-                JobTemplates.itemList(items, id, removeItem => {
+                JobTemplates.itemList(items, data, availableItems, id, removeItem => {
                     if (removeItem.type === "asset") {
                         data.value = {
                             ...data.value,
@@ -451,11 +426,52 @@ export class JobTemplates {
             .build();
     }
 
-    private static itemList(items: Signal<JobItem[]>, jobId: Signal<string>, onRemoveItem: (removeItem: JobItem) => void, onChangeQuantity: (id: string, newQuantity: number) => void) {
+    private static itemList(items: Signal<JobItem[]>, job: Signal<Job>, availableItems: Signal<JobItem[]>, jobId: Signal<string>, onRemoveItem: (removeItem: JobItem) => void, onChangeQuantity: (id: string, newQuantity: number) => void) {
+        const search = signal("");
+        const filteredItems = signal([]);
+        const filterList = () => {
+            if (search.value === "") {
+                filteredItems.value = items.value;
+                return;
+            }
+            const searchValue = search.value.toLowerCase();
+            filteredItems.value = searchList(["id", "name", "asset", "set"], items.value, searchValue);
+        };
+        search.subscribe(filterList);
+        items.subscribe(filterList);
+        filterList();
+
         return create("div")
             .classes("flex-v")
             .children(
-                signalMap(items, create("div").classes("flex-v"), item => JobTemplates.item(item, jobId, onRemoveItem, onChangeQuantity)),
+                create("div")
+                    .classes("flex", "align-center")
+                    .children(
+                        GenericTemplates.input(InputType.text, "search", search, "Search", null, "search", ["full-width", "search-input"], (value: string) => search.value = value),
+                        GenericTemplates.buttonWithIcon("add", "Add item", () => {
+                            createModal(JobTemplates.itemSearch(availableItems, (newItem: JobItem) => {
+                                if (newItem.type === "asset") {
+                                    job.value = {
+                                        ...job.value,
+                                        assets: [
+                                            ...job.value.assets,
+                                            newItem.asset,
+                                        ],
+                                    };
+                                } else {
+                                    job.value = {
+                                        ...job.value,
+                                        sets: [
+                                            ...job.value.sets,
+                                            newItem.set
+                                        ],
+                                    };
+                                }
+                                closeModal(true);
+                            }));
+                        }, ["positive"]),
+                    ).build(),
+                signalMap(filteredItems, create("div").classes("flex-v"), item => JobTemplates.item(item, jobId, onRemoveItem, onChangeQuantity)),
             ).build();
     }
 
@@ -527,13 +543,17 @@ export class JobTemplates {
         return create("div")
             .classes("flex-v", "flex-grow", "search-panel")
             .children(
-                create("span")
-                    .text("Items")
-                    .build(),
                 create("div")
-                    .classes("flex", "align-center")
+                    .classes("flex", "align-center", "search-header")
                     .children(
-                        GenericTemplates.input("text", "search", search, "Search", null, "search", ["full-width", "search-input"], (value: string) => search.value = value),
+                        create("span")
+                            .text("Items")
+                            .build(),
+                        create("div")
+                            .classes("flex", "align-center")
+                            .children(
+                                GenericTemplates.input(InputType.text, "search", search, "Search", null, "search", ["full-width", "search-input"], (value: string) => search.value = value),
+                            ).build(),
                     ).build(),
                 create("table")
                     .children(

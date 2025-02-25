@@ -160,13 +160,20 @@ export class AssetTemplates {
             })
             .children(
                 create("td")
-                    .text(asset.manufacturer)
-                    .build(),
-                create("td")
-                    .text(asset.model)
-                    .build(),
+                    .children(
+                        create("div")
+                            .styles("width", "max-content")
+                            .onclick((e: Event) => {
+                                e.stopPropagation();
+                            }).children(
+                                GenericTemplates.itemName(jobItemFromAsset(asset))
+                            ).build(),
+                    ).build(),
                 create("td")
                     .text(asset.serialNumber)
+                    .build(),
+                create("td")
+                    .text(asset.count)
                     .build(),
                 create("td")
                     .text(asset.uniqueString)
@@ -244,19 +251,19 @@ export class AssetTemplates {
                 create("div")
                     .classes("flex")
                     .children(
-                        GenericTemplates.input<string>("text", "manufacturer", manufacturer, "Company", "Manufacturer", "manufacturer", [], (newValue) => {
+                        GenericTemplates.input<string>(InputType.text, "manufacturer", manufacturer, "Company", "Manufacturer", "manufacturer", [], (newValue) => {
                             data.value = {
                                 ...data.value,
                                 manufacturer: newValue ?? "",
                             };
                         }, [], true),
-                        GenericTemplates.input<string>("text", "model", model, "Model", "Model", "model", [], (newValue) => {
+                        GenericTemplates.input<string>(InputType.text, "model", model, "Model", "Model", "model", [], (newValue) => {
                             data.value = {
                                 ...data.value,
                                 model: newValue ?? "",
                             };
                         }, [], true),
-                        GenericTemplates.input<string>("text", "serialNumber", serialNumber, "Serial", "Serial", "serialNumber", [], (newValue) => {
+                        GenericTemplates.input<string>(InputType.text, "serialNumber", serialNumber, "Serial", "Serial", "serialNumber", [], (newValue) => {
                             data.value = {
                                 ...data.value,
                                 serialNumber: newValue ?? "",
@@ -367,13 +374,17 @@ export class AssetTemplates {
         return create("div")
             .classes("flex-v", "flex-grow", "search-panel")
             .children(
-                create("span")
-                    .text("Assets")
-                    .build(),
                 create("div")
-                    .classes("flex", "align-center")
+                    .classes("flex", "align-center", "search-header")
                     .children(
-                        GenericTemplates.input(InputType.text, "search", search, "Search", null, "search", ["full-width", "search-input"], (value: string) => search.value = value),
+                        create("span")
+                            .text("Assets")
+                            .build(),
+                        create("div")
+                            .classes("flex", "align-center")
+                            .children(
+                                GenericTemplates.input(InputType.text, "search", search, "Search", null, "search", ["full-width", "search-input"], (value: string) => search.value = value),
+                            ).build(),
                     ).build(),
                 create("table")
                     .children(
@@ -382,16 +393,13 @@ export class AssetTemplates {
                                 create("tr")
                                     .children(
                                         create("th")
-                                            .text("Manufacturer")
-                                            .build(),
-                                        create("th")
-                                            .text("Model")
+                                            .text("Name")
                                             .build(),
                                         create("th")
                                             .text("Serial")
                                             .build(),
                                         create("th")
-                                            .text("Unique")
+                                            .text("Stock")
                                             .build(),
                                         create("th")
                                             .text("Unique String")
@@ -421,7 +429,7 @@ export class AssetTemplates {
                 create("div")
                     .classes("flex", "align-center")
                     .children(
-                        GenericTemplates.input(InputType.text, "search", search, "Search", null, "search", ["full-width", "search-input"], (value: string) => search.value = value),
+                        GenericTemplates.input(InputType.text, "filter", search, "Filter", null, "filter", ["full-width", "search-input"], (value: string) => search.value = value),
                     ).build(),
                 create("table")
                     .children(
