@@ -22,6 +22,6 @@ export class DayRateCalculator {
             return overrideDayRate;
         }
 
-        return Math.round((priceInCents / 100) / dayRateFactor) * 100;
+        return Math.ceil((priceInCents / 100) / dayRateFactor) * 100;
     }
 }
