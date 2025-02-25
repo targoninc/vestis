@@ -72,4 +72,4 @@ jobs:
           title: "Development Build"
           files: |
             release/linux/**/Vestis-*.AppImage
-            release/windows/**/Vestis-*.exe
+            release/windows/**/Vestis-*.msi
