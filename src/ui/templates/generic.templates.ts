@@ -49,13 +49,13 @@ export class GenericTemplates {
                 onQuantityChange(id, newQuantity);
             }
         });
-        const removeClass = signal(quantity.value === 1 ? "disabled" : "_");
-        const addClass = signal(quantity.value === maxQuantity ? "disabled" : "_");
+        const removeClass = signal(quantity.value <= 1 ? "disabled" : "_");
+        const addClass = signal(quantity.value >= maxQuantity ? "disabled" : "_");
         quantity.subscribe(q => {
-            if (q === 1) {
+            if (q <= 1) {
                 removeClass.value = "disabled";
                 addClass.value = "disabled";
-            } else if (q === maxQuantity) {
+            } else if (q >= maxQuantity) {
                 removeClass.value = "disabled";
                 addClass.value = "_";
             } else {
