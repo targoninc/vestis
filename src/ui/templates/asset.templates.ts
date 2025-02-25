@@ -499,7 +499,7 @@ export class AssetTemplates {
 
     static assetCard(selectedAsset: Signal<Asset>, selectedAssetId: Signal<string>) {
         const form = compute(asset => {
-            return AssetTemplates.assetForm(asset, "Edit asset", () => getUpdateAssetMethod(asset, selectedAssetId), false);
+            return AssetTemplates.assetForm(asset, "Edit asset", getUpdateAssetMethod(asset, selectedAssetId), false);
         }, selectedAsset);
 
         return create("div")
