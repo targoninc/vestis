@@ -14,9 +14,17 @@ import {compareJobsByStartTime, getDayOffset, getMaxDaysFromJobs} from "../class
 export class CalendarTemplates {
     static calendar(activePage: Signal<string>) {
         const dayOffset = signal(0);
-        const noPastJobs = compute((jobs, offset) => jobs.filter(job => new Date(job.endTime).getTime() >= dayAsTime(offset, 0)), jobList, dayOffset);
+        const viewOffset = compute(o => o, dayOffset);
+        const viewLimitDays = 14;
+        const noPastJobs = compute((jobs, offset) => {
+            return jobs.filter(job => {
+                const isAfterStartDate = new Date(job.endTime).getTime() >= dayAsTime(offset, 0);
+                const startsBeforeLimit = new Date(job.startTime).getTime() < dayAsTime(offset + viewLimitDays, 0);
+                return isAfterStartDate && startsBeforeLimit;
+            });
+        }, jobList, viewOffset);
         const orderedJobs = compute(jobs => jobs.sort(compareJobsByStartTime), noPastJobs);
-        const maxDaysFromNow = compute(getMaxDaysFromJobs, noPastJobs);
+        const maxDaysFromNow = compute(j => getMaxDaysFromJobs(j, viewLimitDays), noPastJobs);
         const pixelsPerDay = 200;
         activePage.subscribe(page => {
             if (page === "jobs" || page === "calendar") {
@@ -56,7 +64,7 @@ export class CalendarTemplates {
                         create("div")
                             .classes("flex-v")
                             .children(
-                                CalendarTemplates.dateOverview(dayOffset),
+                                CalendarTemplates.dateOverview(dayOffset, viewLimitDays),
                                 signalMap(orderedJobs, create("div").classes("flex-v"), job => {
                                     return create("div")
                                         .classes("card", "clickable", "flex")
@@ -74,15 +82,15 @@ export class CalendarTemplates {
                         create("div")
                             .classes("flex", "flex-grow", "no-gap", "timeline-jobs-container")
                             .children(
-                                CalendarTemplates.gridLines(maxDaysFromNow, pixelsPerDay, 2),
-                                CalendarTemplates.dates(dayOffset, maxDaysFromNow, pixelsPerDay),
-                                signalMap<Job>(orderedJobs, create("div").classes("timeline-jobs"), (job, i) => CalendarTemplates.job(job, dayOffset, i, pixelsPerDay)),
+                                CalendarTemplates.gridLines(maxDaysFromNow, pixelsPerDay, 4),
+                                CalendarTemplates.dates(viewOffset, maxDaysFromNow, pixelsPerDay),
+                                signalMap<Job>(orderedJobs, create("div").classes("timeline-jobs"), (job, i) => CalendarTemplates.job(job, viewOffset, i, pixelsPerDay)),
                             ).build()
                     ).build()
             ).build();
     }
 
-    static dateOverview(dayOffset: Signal<number>) {
+    static dateOverview(dayOffset: Signal<number>, viewLimitDays: number) {
         const rows = 5;
         const cols = 7;
         const today = date();
@@ -117,7 +125,7 @@ export class CalendarTemplates {
                                 const isToday = day(0, 0) === day(offset, 0);
                                 const activeClass = compute(o => o === offset ? "active" : "_", dayOffset);
                                 const inViewClass = compute(o => {
-                                    if (offset >= o && offset < o + 14) {
+                                    if (offset >= o && offset < o + viewLimitDays) {
                                         return "outlined";
                                     }
                                     return "_";
@@ -153,7 +161,7 @@ export class CalendarTemplates {
             const offset = dayOffset.value;
             const days = maxDaysFromNow.value;
             const dates = Array.from({length: days}, (_, i) => {
-                const date = new Date(dayAsTime(i + offset, 0));
+                const date = new Date(dayAsTime(i + offset + 1, 0));
                 return create("div")
                     .classes("timeline-date")
                     .styles("left", i * pixelsPerDay + "px")
