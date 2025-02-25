@@ -744,24 +744,32 @@ kbd {
     white-space: nowrap;
 }
 
+.date-overview {
+    border: 1px solid var(--bg-4);
+    border-radius: var(--input-border-radius);
+    padding: var(--gap-h);
+}
+
 .date-overview-row {
     flex-wrap: nowrap;
 }
 
-.date-overview-day {
+.date-overview-day, .date-overview-header {
     --day-size: 2.1em;
     width: var(--day-size);
     height: var(--day-size);
     border-radius: 999px;
     text-align: center;
-    font-weight: bold;
     font-size: 0.8em;
-    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--bg);
     border: 2px solid transparent;
+}
+
+.date-overview-day {
+    background: var(--bg);
+    cursor: pointer;
 }
 
 .date-overview-day:hover {
@@ -770,8 +778,10 @@ kbd {
 
 .date-overview-day.today {
     border: 2px solid var(--blue);
+    font-weight: bold;
 }
 
 .date-overview-day.active {
     background: var(--blue);
+    font-weight: bold;
 }

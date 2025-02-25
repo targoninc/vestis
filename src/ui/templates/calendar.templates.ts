@@ -91,9 +91,19 @@ export class CalendarTemplates {
             const offset = Math.floor(rows / 2) * cols;
             return (i * 7 + j) - offset - weekday;
         }
+        const headers = ["M", "T", "W", "T", "F", "S", "S"];
 
         return create("div")
+            .classes("date-overview")
             .children(
+                create("div")
+                    .classes("flex", "align-center", "date-overview-row")
+                    .children(
+                        ...headers.map(header => create("div")
+                            .classes("date-overview-header")
+                            .text(header)
+                            .build())
+                    ).build(),
                 ...Array.from({length: rows}, (_, i) => {
                     return create("div")
                         .classes("flex", "align-center", "date-overview-row")
