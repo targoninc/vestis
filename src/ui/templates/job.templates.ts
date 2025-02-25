@@ -2,7 +2,7 @@ import {GenericTemplates} from "./generic.templates";
 import {day} from "../classes/time";
 import {closeModal, createModal, toast} from "../classes/ui";
 import {Api} from "../classes/api";
-import {getCountInJobs, itemsFromAssetsAndSets, jobItemFromAsset} from "../classes/availabilityCalculator";
+import {itemsFromAssetsAndSets, jobItemFromAsset} from "../classes/availabilityCalculator";
 import {compute, Signal, signal} from "../lib/fjsc/src/signals";
 import {Job} from "../../models/Job";
 import {create, ifjs, signalMap, StringOrSignal} from "../lib/fjsc/src/f2";
@@ -11,7 +11,7 @@ import {Callback} from "../classes/types";
 import {assetList, jobList, setList} from "../classes/store";
 import {searchList} from "../classes/search";
 import {Tab} from "../../models/uiExtensions/Tab";
-import {editAsset, editSet, newJob} from "../classes/actions";
+import {newJob} from "../classes/actions";
 import {JobItem} from "../../models/JobItem";
 import {typeIcons} from "../enums/TypeIcons";
 import {InputType} from "../lib/fjsc/src/Types";
@@ -203,13 +203,13 @@ export class JobTemplates {
                 create("div")
                     .classes("flex", "align-center")
                     .children(
-                        GenericTemplates.input<string>("text", "jobNumber", jobNumber, "Job number", "Job number", "jobNumber", [], (newValue) => {
+                        GenericTemplates.input<string>(InputType.text, "jobNumber", jobNumber, "Job number", "Job number", "jobNumber", [], (newValue) => {
                             data.value = {
                                 ...data.value,
                                 jobNumber: newValue,
                             };
                         }),
-                        GenericTemplates.input<string>("text", "name", name, "Name", "Name", "name", [], (newValue) => {
+                        GenericTemplates.input<string>(InputType.text, "name", name, "Name", "Name", "name", [], (newValue) => {
                             data.value = {
                                 ...data.value,
                                 name: newValue,
@@ -219,13 +219,13 @@ export class JobTemplates {
                 create("div")
                     .classes("flex", "align-center")
                     .children(
-                        GenericTemplates.input<string>("text", "customerId", customerId, "Customer", "Customer", "customerId", [], (newValue) => {
+                        GenericTemplates.input<string>(InputType.text, "customerId", customerId, "Customer", "Customer", "customerId", [], (newValue) => {
                             data.value = {
                                 ...data.value,
                                 customerId: newValue,
                             };
                         }),
-                        GenericTemplates.input<string>("text", "contact", contact, "Contact", "Contact", "contact", [], (newValue) => {
+                        GenericTemplates.input<string>(InputType.text, "contact", contact, "Contact", "Contact", "contact", [], (newValue) => {
                             data.value = {
                                 ...data.value,
                                 contact: newValue,
@@ -235,19 +235,19 @@ export class JobTemplates {
                 create("div")
                     .classes("flex", "align-center")
                     .children(
-                        GenericTemplates.input<number>("datetime-local", "startTime", startTime, "Start time", "Start time", "startTime", [], (newValue) => {
+                        GenericTemplates.input<number>(InputType.datetimelocal, "startTime", startTime, "Start time", "Start time", "startTime", [], (newValue) => {
                             data.value = {
                                 ...data.value,
                                 startTime: newValue,
                             };
                         }, ["step", "1800"]),
-                        GenericTemplates.input<number>("datetime-local", "endTime", endTime, "End time", "End time", "endTime", [], (newValue) => {
+                        GenericTemplates.input<number>(InputType.datetimelocal, "endTime", endTime, "End time", "End time", "endTime", [], (newValue) => {
                             data.value = {
                                 ...data.value,
                                 endTime: newValue,
                             };
                         }),
-                        GenericTemplates.input<number>("number", "dayCount", dayCount, "Day count", "Day count", "dayCount", [], (newValue) => {
+                        GenericTemplates.input<number>(InputType.number, "dayCount", dayCount, "Day count", "Day count", "dayCount", [], (newValue) => {
                             data.value = {
                                 ...data.value,
                                 dayCount: newValue,

@@ -5,7 +5,7 @@ import {AssetSet} from "../../models/AssetSet";
 import {Callback} from "../classes/types";
 import {compute, signal, Signal} from "../lib/fjsc/src/signals";
 import {create, ifjs, signalMap, StringOrSignal} from "../lib/fjsc/src/f2";
-import {assetList, setList} from "../classes/store";
+import {assetList} from "../classes/store";
 import {deleteSet, getUpdateSetMethod, newSet} from "../classes/actions";
 import {AssetTemplates} from "./asset.templates";
 import {InputType} from "../lib/fjsc/src/Types";
@@ -232,131 +232,6 @@ export class SetTemplates {
                         ifjs(set && set.id, GenericTemplates.buttonWithIcon("delete", "Delete", () => deleteSet(set), ["negative"])),
                         ifjs(loading, GenericTemplates.spinner()),
                     ).build()
-            ).build();
-    }
-
-    static setSearch(availableSets: Signal<AssetSet[]>, onSelectSet: Callback<[AssetSet]> = (set) => {}) {
-        const search = signal("");
-        const filteredSets = compute((search, availableSets) => {
-            if (search === "") {
-                return availableSets;
-            }
-            const searchValue = search.toLowerCase();
-            return searchList(["setName", "assets"], availableSets, searchValue);
-        }, search, availableSets);
-
-        return create("div")
-            .classes("flex-v", "flex-grow", "search-panel")
-            .children(
-                create("span")
-                    .text("Assets")
-                    .build(),
-                create("div")
-                    .classes("flex", "align-center")
-                    .children(
-                        GenericTemplates.input(InputType.text, "search", search, "Search", null, "search", ["full-width", "search-input"], (value: string) => search.value = value),
-                    ).build(),
-                create("table")
-                    .children(
-                        create("thead")
-                            .children(
-                                create("tr")
-                                    .children(
-                                        create("th")
-                                            .text("Set name")
-                                            .build(),
-                                        create("th")
-                                            .text("Assets in set")
-                                            .build(),
-                                    ).build(),
-                            ).build(),
-                        signalMap<AssetSet>(filteredSets, create("tbody"), set => {
-                            return SetTemplates.searchSet(set, onSelectSet);
-                        })
-                    ).build(),
-            ).build();
-    }
-
-    static searchSet(set: AssetSet, onSelectSet: Callback<[AssetSet]>) {
-        return create("tr")
-            .onclick(() => {
-                onSelectSet(set);
-            })
-            .children(
-                create("td")
-                    .text(set.setName)
-                    .build(),
-                create("td")
-                    .text(set.assets.length)
-                    .build(),
-            ).build();
-    }
-
-    static setListWithQuantity(sets: Signal<AssetSet[]>, onRemoveSet: Callback<[AssetSet]>, onQuantityChange: Callback<[string, number]>) {
-        const headers = [
-            {
-                headerName: "Set name",
-                propertyName: "setName",
-            },
-            {
-                headerName: "Assets in set",
-                propertyName: "assets.length",
-            }
-        ];
-        const activeSortHeader = signal(null);
-        const search = signal("");
-        const filteredSets = signal([]);
-        const filterSets = () => {
-            if (search.value === "") {
-                filteredSets.value = sets.value;
-                return;
-            }
-            const searchValue = search.value.toLowerCase();
-            filteredSets.value = searchList(["manufacturer", "model", "serialNumber"], sets.value, searchValue);
-        };
-        search.subscribe(filterSets);
-        sets.subscribe(filterSets);
-        filterSets();
-
-        return create("div")
-            .classes("flex-v", "flex-grow", "search-panel")
-            .children(
-                create("div")
-                    .classes("flex", "align-center")
-                    .children(
-                        GenericTemplates.input(InputType.text, "search", search, "Search", null, "search", ["full-width", "search-input"], (value: string) => search.value = value),
-                    ).build(),
-                create("table")
-                    .children(
-                        create("thead")
-                            .children(
-                                create("tr")
-                                    .children(
-                                    ...headers.map(header => GenericTemplates.tableListHeader(header.headerName, header.propertyName, activeSortHeader, setList))
-                                    ).build(),
-                            ).build(),
-                        signalMap<AssetSet>(filteredSets, create("tbody"), set => {
-                            return SetTemplates.setInJob(set, onRemoveSet);
-                        })
-                    ).build(),
-            ).build();
-    }
-
-    static setInJob(set: AssetSet, onRemoveSet: Callback<[AssetSet]>) {
-        return create("tr")
-            .children(
-                create("td")
-                    .text(set.setName)
-                    .build(),
-                create("td")
-                    .text(set.assets.length)
-                    .build(),
-                create("td")
-                    .children(
-                        GenericTemplates.buttonWithIcon("delete", "Remove", () => {
-                            onRemoveSet(set);
-                        }, ["negative"]),
-                    ).build(),
             ).build();
     }
 

@@ -7,9 +7,9 @@ import {Asset} from "../../models/Asset";
 import {compute, Signal, signal} from "../lib/fjsc/src/signals";
 import {create, ifjs, signalMap} from "../lib/fjsc/src/f2";
 import {Tag} from "../../models/Tag";
-import {assetList, jobList} from "../classes/store";
+import {assetList} from "../classes/store";
 import {deleteAsset, getUpdateAssetMethod, newAsset, newSet} from "../classes/actions";
-import {getCountInJobs, jobItemFromAsset} from "../classes/availabilityCalculator";
+import {jobItemFromAsset} from "../classes/availabilityCalculator";
 import {InputType} from "../lib/fjsc/src/Types";
 
 export class AssetTemplates {
