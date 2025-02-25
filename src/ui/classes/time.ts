@@ -19,11 +19,15 @@ export function formatTime(ms: number) {
     return result;
 }
 
-export function day(offset = 0, hour = 12) {
+export function date(offset = 0, hour = 12) {
     const date = new Date();
     date.setHours(hour, 0, 0, 0);
     date.setDate(date.getDate() + offset);
-    return date.toISOString().split(".")[0];
+    return date;
+}
+
+export function day(offset = 0, hour = 12) {
+    return date(offset, hour).toISOString().split(".")[0];
 }
 
 export function dayAsTime(offset = 0, hour = 12) {

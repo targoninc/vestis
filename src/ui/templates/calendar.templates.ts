@@ -1,4 +1,4 @@
-import {dayAsTime, getPastDateWarning} from "../classes/time";
+import {date, day, dayAsTime, getPastDateWarning} from "../classes/time";
 import {GenericTemplates} from "./generic.templates";
 import {Api} from "../classes/api";
 import {toast} from "../classes/ui";
@@ -56,6 +56,7 @@ export class CalendarTemplates {
                         create("div")
                             .classes("flex-v")
                             .children(
+                                CalendarTemplates.dateOverview(dayOffset),
                                 signalMap(orderedJobs, create("div").classes("flex-v"), job => {
                                     return create("div")
                                         .classes("card", "clickable", "flex")
@@ -78,6 +79,42 @@ export class CalendarTemplates {
                                 signalMap<Job>(orderedJobs, create("div").classes("timeline-jobs"), (job, i) => CalendarTemplates.job(job, dayOffset, i, pixelsPerDay)),
                             ).build()
                     ).build()
+            ).build();
+    }
+
+    static dateOverview(dayOffset: Signal<number>) {
+        const rows = 5;
+        const cols = 7;
+        const today = date();
+        const weekday = today.getDay();
+        const getOffset = (i: number, j: number) => {
+            const offset = Math.floor(rows / 2) * cols;
+            return (i * 7 + j) - offset - weekday;
+        }
+
+        return create("div")
+            .children(
+                ...Array.from({length: rows}, (_, i) => {
+                    return create("div")
+                        .classes("flex", "align-center", "date-overview-row")
+                        .children(
+                            ...Array.from({length: cols}, (_, j) => {
+                                const offset = getOffset(i, cols - j);
+                                const curDay = date(offset, 0);
+                                const onlyDay = curDay.getDate();
+                                const isToday = day(0, 0) === day(offset, 0);
+                                const activeClass = compute(o => o === offset ? "active" : "_", dayOffset);
+
+                                return create("div")
+                                    .classes("date-overview-day", isToday ? "today" : "_", activeClass)
+                                    .onclick(() => {
+                                        dayOffset.value = offset;
+                                    })
+                                    .text(onlyDay)
+                                    .build();
+                            }).reverse()
+                        ).build();
+                }),
             ).build();
     }
 

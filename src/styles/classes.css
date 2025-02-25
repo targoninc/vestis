@@ -743,3 +743,35 @@ kbd {
     padding: 2px 4px;
     white-space: nowrap;
 }
+
+.date-overview-row {
+    flex-wrap: nowrap;
+}
+
+.date-overview-day {
+    --day-size: 2.1em;
+    width: var(--day-size);
+    height: var(--day-size);
+    border-radius: 999px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 0.8em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+    border: 2px solid transparent;
+}
+
+.date-overview-day:hover {
+    background: var(--bg-4);
+}
+
+.date-overview-day.today {
+    border: 2px solid var(--blue);
+}
+
+.date-overview-day.active {
+    background: var(--blue);
+}
