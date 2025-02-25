@@ -9,7 +9,7 @@ import {Job} from "../../models/Job";
 import {create, ifjs, signalMap} from "../lib/fjsc/src/f2";
 import {ToastType} from "../enums/ToastType";
 import {jobList} from "../classes/store";
-import {compareJobsByStartTime, getMaxDaysFromJobs} from "../classes/jobUtils";
+import {compareJobsByStartTime, getDayOffset, getMaxDaysFromJobs} from "../classes/jobUtils";
 
 export class CalendarTemplates {
     static calendar(activePage: Signal<string>) {
@@ -51,11 +51,32 @@ export class CalendarTemplates {
                         }),
                     ).build(),
                 create("div")
-                    .classes("flex", "flex-grow", "no-gap", "timeline-jobs-container")
+                    .classes("flex", "flex-grow")
                     .children(
-                        CalendarTemplates.gridLines(maxDaysFromNow, pixelsPerDay, 2),
-                        CalendarTemplates.dates(dayOffset, maxDaysFromNow, pixelsPerDay),
-                        signalMap<Job>(orderedJobs, create("div").classes("timeline-jobs"), (job, i) => CalendarTemplates.job(job, dayOffset, i, pixelsPerDay)),
+                        create("div")
+                            .classes("flex-v")
+                            .children(
+                                signalMap(orderedJobs, create("div").classes("flex-v"), job => {
+                                    return create("div")
+                                        .classes("card", "clickable", "flex")
+                                        .onclick(() => {
+                                            dayOffset.value = getDayOffset(job.startTime);
+                                        })
+                                        .children(
+                                            GenericTemplates.icon("calendar_today"),
+                                            create("span")
+                                                .text(job.name)
+                                                .build(),
+                                        ).build();
+                                }),
+                            ).build(),
+                        create("div")
+                            .classes("flex", "flex-grow", "no-gap", "timeline-jobs-container")
+                            .children(
+                                CalendarTemplates.gridLines(maxDaysFromNow, pixelsPerDay, 2),
+                                CalendarTemplates.dates(dayOffset, maxDaysFromNow, pixelsPerDay),
+                                signalMap<Job>(orderedJobs, create("div").classes("timeline-jobs"), (job, i) => CalendarTemplates.job(job, dayOffset, i, pixelsPerDay)),
+                            ).build()
                     ).build()
             ).build();
     }

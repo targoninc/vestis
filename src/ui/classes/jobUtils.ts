@@ -16,3 +16,7 @@ export function compareJobsByStartTime(a: Job, b: Job) {
     const bTime = new Date(b.startTime).getTime();
     return aTime - bTime;
 }
+
+export function getDayOffset(startTime: number) {
+    return Math.floor((new Date(startTime).getTime() - dayAsTime(0, 0)) / (1000 * 60 * 60 * 24));
+}
