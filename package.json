@@ -36,6 +36,9 @@
     "vite-plugin-native": "^2.2.2"
   },
   "dependencies": {
+    "@pdfme/common": "^5.3.8",
+    "@pdfme/generator": "^5.3.8",
+    "@pdfme/schemas": "^5.3.8",
     "@types/uuid": "^10.0.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
