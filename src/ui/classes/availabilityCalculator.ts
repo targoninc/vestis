@@ -1,7 +1,7 @@
 import {Asset} from "../../models/Asset";
 import {Job} from "../../models/Job";
 import {AssetSet} from "../../models/AssetSet";
-import {JobItem} from "../../models/JobItem";
+import {Item} from "../../models/Item";
 import {jobList} from "./store";
 
 export class AvailabilityCalculator {
@@ -124,29 +124,38 @@ export function getMinQuantityFromSet(set: AssetSet, excludeJobId: string|null =
 }
 
 export function itemsFromAssetsAndSets(a: Asset[], s: AssetSet[], jobId: string|null = null) {
-    return a.map(ass => jobItemFromAsset(ass, jobId))
-        .concat(s.map(set => jobItemFromSet(set, jobId)));
+    return a.map(ass => itemFromAsset(ass, jobId))
+        .concat(s.map(set => itemFromSet(set, jobId)) as Item[]);
 }
 
-export function jobItemFromAsset(asset: Asset, jobId: string|null = null) {
-    return <JobItem>{
+export function itemFromAsset(asset: Asset, jobId: string|null = null) {
+    return <Item<Asset>>{
         id: asset.id,
         name: asset.manufacturer + " " + asset.model,
         type: "asset",
         quantity: asset.quantity,
-        asset,
+        entity: asset,
         maxQuantity: asset.count - getCountInJobs(jobList.value, asset.id, jobId),
     };
 }
 
-export function jobItemFromSet(set: AssetSet, jobId: string|null = null) {
-    return <JobItem>{
+export function itemFromSet(set: AssetSet, jobId: string|null = null) {
+    return <Item<AssetSet>>{
         id: set.id,
         name: set.setName,
         type: "set",
-        set,
+        entity: set,
         quantity: set.quantity,
         maxQuantity: getMinQuantityFromSet(set, jobId),
         content: set.assets,
+    };
+}
+
+export function itemFromJob(job: Job) {
+    return <Item<Job>>{
+        id: job.id,
+        name: job.name,
+        type: "job",
+        entity: job,
     };
 }

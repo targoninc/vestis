@@ -1,3 +1,6 @@
+import {toast} from "./ui";
+import {ToastType} from "../enums/ToastType";
+
 export class ApiBase {
     static baseUrl = "http://localhost:48678";
 
@@ -56,6 +59,9 @@ export class ApiBase {
                 data: JSON.parse(text) as T
             };
         } catch (e) {
+            if (!res.ok) {
+                toast(text, null, ToastType.negative);
+            }
             return {
                 status: res.status,
                 success: res.ok,

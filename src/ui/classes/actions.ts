@@ -136,6 +136,27 @@ export function editSet(set: AssetSet) {
     createModal(SetTemplates.setForm(set, "Edit set", getUpdateSetMethod(set)));
 }
 
+export function editJob(job: Job) {
+    createModal(JobTemplates.jobForm(job, "Edit job", getUpdateJobMethod(job)));
+}
+
+export function getUpdateJobMethod(job: Job, selectedJobId?: Signal<string>) {
+    return (data: Partial<Job>, done: () => void = () => {}) => {
+        Api.updateJob(job.id, data).then(() => {
+            Api.getJobs().then(jobsResponse => {
+                if (jobsResponse.success) {
+                    toast(`Job ${data.jobNumber} updated`, null, ToastType.positive);
+                    jobList.value = jobsResponse.data as Job[];
+                    if (selectedJobId) {
+                        selectedJobId.value = job.id;
+                    }
+                }
+                done();
+            });
+        });
+    };
+}
+
 export function deleteJob(job: Partial<Job>) {
     createModal(GenericTemplates.confirmModalWithContent("Delete job", create("div")
         .classes("flex-v")

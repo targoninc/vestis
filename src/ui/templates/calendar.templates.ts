@@ -10,6 +10,7 @@ import {create, ifjs, signalMap} from "../lib/fjsc/src/f2";
 import {ToastType} from "../enums/ToastType";
 import {jobList} from "../classes/store";
 import {compareJobsByStartTime, getDayOffset, getMaxDaysFromJobs} from "../classes/jobUtils";
+import {getUpdateJobMethod} from "../classes/actions";
 
 export class CalendarTemplates {
     static calendar(activePage: Signal<string>) {
@@ -326,19 +327,11 @@ export class CalendarTemplates {
             .classes("flex-v", "job-actions")
             .children(
                 GenericTemplates.inlineToggle("Disposition", !!job.disposition, val => {
-                    Api.updateJob(job.id, {
+                    const newJob = {
                         ...job,
                         disposition: val ? 1 : 0,
-                    }).then(() => {
-                        Api.getJobs().then(jobsResponse => {
-                            if (jobsResponse.success) {
-                                toast(`Job ${job.jobNumber} updated`, null, ToastType.positive);
-                                jobList.value = jobsResponse.data as Job[];
-                            } else {
-                                toast(jobsResponse.data as string, null, ToastType.negative);
-                            }
-                        });
-                    });
+                    };
+                    getUpdateJobMethod(newJob)(newJob);
                 }),
                 create("div")
                     .classes("flex", "align-center")

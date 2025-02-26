@@ -1,18 +1,16 @@
 import {GenericTemplates} from "./generic.templates";
 import {day} from "../classes/time";
-import {closeModal, createModal, toast} from "../classes/ui";
-import {Api} from "../classes/api";
-import {itemsFromAssetsAndSets, jobItemFromAsset} from "../classes/availabilityCalculator";
+import {closeModal, createModal} from "../classes/ui";
+import {itemsFromAssetsAndSets, itemFromAsset, itemFromJob} from "../classes/availabilityCalculator";
 import {compute, Signal, signal} from "../lib/fjsc/src/signals";
 import {Job} from "../../models/Job";
 import {create, ifjs, signalMap, StringOrSignal} from "../lib/fjsc/src/f2";
-import {ToastType} from "../enums/ToastType";
 import {Callback} from "../classes/types";
 import {assetList, jobList, setList} from "../classes/store";
 import {searchList} from "../classes/search";
 import {Tab} from "../../models/uiExtensions/Tab";
-import {deleteJob, newJob} from "../classes/actions";
-import {JobItem} from "../../models/JobItem";
+import {deleteJob, getUpdateJobMethod, newJob} from "../classes/actions";
+import {Item} from "../../models/Item";
 import {typeIcons} from "../enums/TypeIcons";
 import {InputType} from "../lib/fjsc/src/Types";
 
@@ -264,17 +262,7 @@ export class JobTemplates {
 
     static jobEditButton(job: Job) {
         return GenericTemplates.buttonWithIcon("edit", "Edit", () => {
-            createModal(JobTemplates.jobForm(job, "Edit job", (data, done) => {
-                Api.updateJob(job.id, data).then(() => {
-                    Api.getJobs().then(jobsResponse => {
-                        if (jobsResponse.success) {
-                            toast(`Job ${data.jobNumber} updated`, null, ToastType.positive);
-                            jobList.value = jobsResponse.data as Job[];
-                        }
-                        done();
-                    });
-                });
-            }));
+            createModal(JobTemplates.jobForm(job, "Edit job", getUpdateJobMethod(job)));
         });
     }
 
@@ -386,20 +374,7 @@ export class JobTemplates {
     }
 
     static jobCard(selectedJob: Signal<Job>, selectedJobId: Signal<string>) {
-        const form = compute(job => {
-            return JobTemplates.jobForm(job, "Edit job", (data, done) => {
-                Api.updateJob(job.id, data).then(() => {
-                    Api.getJobs().then(jobsResponse => {
-                        if (jobsResponse.success) {
-                            toast(`Job ${data.jobNumber} updated`, null, ToastType.positive);
-                            jobList.value = jobsResponse.data as Job[];
-                            selectedJobId.value = job.id;
-                        }
-                        done();
-                    });
-                });
-            }, false);
-        }, selectedJob);
+        const form = compute(job => JobTemplates.jobForm(job, "Edit job", getUpdateJobMethod(job, selectedJobId), false), selectedJob);
 
         return create("div")
             .classes("flex-v", "bordered-panel", "flex-grow")
@@ -407,7 +382,7 @@ export class JobTemplates {
             .build();
     }
 
-    private static itemList(items: Signal<JobItem[]>, job: Signal<Job>, availableItems: Signal<JobItem[]>, jobId: Signal<string>, onRemoveItem: (removeItem: JobItem) => void, onChangeQuantity: (id: string, newQuantity: number) => void) {
+    private static itemList(items: Signal<Item[]>, job: Signal<Job>, availableItems: Signal<Item[]>, jobId: Signal<string>, onRemoveItem: (removeItem: Item) => void, onChangeQuantity: (id: string, newQuantity: number) => void) {
         const search = signal("");
         const filteredItems = signal([]);
         const filterList = () => {
@@ -430,14 +405,14 @@ export class JobTemplates {
                     .children(
                         GenericTemplates.input(InputType.text, "search", search, "Search", null, "search", ["full-width", "search-input"], (value: string) => search.value = value),
                         GenericTemplates.buttonWithIcon("add", "Add item", () => {
-                            createModal(JobTemplates.itemSearch(availableItems, (newItem: JobItem) => {
+                            createModal(JobTemplates.itemSearch(availableItems, (newItem: Item) => {
                                 if (newItem.type === "asset") {
                                     job.value = {
                                         ...job.value,
                                         assets: [
                                             ...job.value.assets,
                                             {
-                                                ...newItem.asset,
+                                                ...newItem.entity,
                                                 quantity: 1,
                                             },
                                         ],
@@ -448,7 +423,7 @@ export class JobTemplates {
                                         sets: [
                                             ...job.value.sets,
                                             {
-                                                ...newItem.set,
+                                                ...newItem.entity,
                                                 quantity: 1,
                                             },
                                         ],
@@ -463,7 +438,7 @@ export class JobTemplates {
     }
 
 
-    private static item(item: JobItem, jobId: Signal<string>, onRemoveItem: (removeItem: JobItem) => void, onChangeQuantity: (id: string, newQuantity: number) => void) {
+    private static item(item: Item, jobId: Signal<string>, onRemoveItem: (removeItem: Item) => void, onChangeQuantity: (id: string, newQuantity: number) => void) {
         const hasContent = item.content != undefined && item.content.length > 0;
         const content = item.content ?? [];
         const expanded = signal(false);
@@ -503,7 +478,7 @@ export class JobTemplates {
                                     return create("div")
                                         .classes("flex", "space-between", "secondary-card", isFirst ? "no-radius-top" : (isLast ? "no-radius-bottom" : "_"))
                                         .children(
-                                            GenericTemplates.itemName(jobItemFromAsset(a, jobId.value)),
+                                            GenericTemplates.itemName(itemFromAsset(a, jobId.value)),
                                             GenericTemplates.quantityChanger(a.id, false, a.quantity * item.quantity, a.count),
                                         ).build();
                                 })
@@ -512,7 +487,7 @@ export class JobTemplates {
             ).build();
     }
 
-    private static itemSearch(availableItems: Signal<JobItem[]>, onAdd: (newItem: JobItem) => void) {
+    private static itemSearch(availableItems: Signal<Item[]>, onAdd: (newItem: Item) => void) {
         const search = signal("");
         const filteredItems = signal([]);
         const filterList = () => {
@@ -559,7 +534,7 @@ export class JobTemplates {
                                             .build(),
                                     ).build(),
                             ).build(),
-                        signalMap<JobItem>(filteredItems, create("tbody"), item => {
+                        signalMap<Item>(filteredItems, create("tbody"), item => {
                             return create("tr")
                                 .classes("clickable")
                                 .onclick(() => {

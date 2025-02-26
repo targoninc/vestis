@@ -10,8 +10,8 @@ import {FJSC} from "../lib/fjsc";
 import {Tab} from "../../models/uiExtensions/Tab";
 import {TextSegment} from "../../models/uiExtensions/TextSegment";
 import {InputType} from "../lib/fjsc/src/Types";
-import {JobItem} from "../../models/JobItem";
-import {editAsset, editSet} from "../classes/actions";
+import {Item} from "../../models/Item";
+import {editAsset, editJob, editSet} from "../classes/actions";
 import {TextSegmentType} from "../enums/TextSegmentType";
 
 export class GenericTemplates {
@@ -190,21 +190,23 @@ export class GenericTemplates {
             ).build();
     }
 
-    static itemName(item: JobItem) {
+    static itemName(item: Item) {
         return create("span")
             .classes("title", "clickable")
+            .text(item.name)
             .onclick(() => {
                 switch (item.type) {
                     case "asset":
-                        editAsset(item.asset);
+                        editAsset(item.entity);
                         break;
                     case "set":
-                        editSet(item.set);
+                        editSet(item.entity);
+                        break;
+                    case "job":
+                        editJob(item.entity);
                         break;
                 }
-            })
-            .text(item.name)
-            .build();
+            }).build();
     }
 
     static confirmModal(title: StringOrSignal, message: StringOrSignal, confirmText = "Confirm", cancelText = "Cancel",

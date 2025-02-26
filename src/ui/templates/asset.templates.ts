@@ -7,9 +7,9 @@ import {Asset} from "../../models/Asset";
 import {compute, Signal, signal} from "../lib/fjsc/src/signals";
 import {create, ifjs, signalMap} from "../lib/fjsc/src/f2";
 import {Tag} from "../../models/Tag";
-import {assetList} from "../classes/store";
+import {assetList, jobList} from "../classes/store";
 import {deleteAsset, getUpdateAssetMethod, newAsset, newSet} from "../classes/actions";
-import {jobItemFromAsset} from "../classes/availabilityCalculator";
+import {itemFromAsset} from "../classes/availabilityCalculator";
 import {InputType} from "../lib/fjsc/src/Types";
 
 export class AssetTemplates {
@@ -166,7 +166,7 @@ export class AssetTemplates {
                             .onclick((e: Event) => {
                                 e.stopPropagation();
                             }).children(
-                                GenericTemplates.itemName(jobItemFromAsset(asset))
+                                GenericTemplates.itemName(itemFromAsset(asset))
                             ).build(),
                     ).build(),
                 create("td")
@@ -226,6 +226,7 @@ export class AssetTemplates {
         const loading = signal(false);
         const notSaveable = compute((l, e) => l || !!e, loading, error);
         const isUpdate = !!(assetData && assetData.id);
+        const inJobs = compute(jobs => isUpdate ? jobs.filter(job => job.assets.filter(asset => asset.id === assetData.id)) : [], jobList);
 
         return create("div")
             .classes("flex-v")
@@ -476,7 +477,7 @@ export class AssetTemplates {
         return create("tr")
             .children(
                 create("td")
-                    .children(GenericTemplates.itemName(jobItemFromAsset(asset)))
+                    .children(GenericTemplates.itemName(itemFromAsset(asset)))
                     .build(),
                 create("td")
                     .text(asset.serialNumber)

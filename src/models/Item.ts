@@ -1,13 +1,11 @@
 import {Asset} from "./Asset";
-import {AssetSet} from "./AssetSet";
 
-export interface JobItem {
-    type: "asset" | "set";
+export interface Item<T = any> {
+    type: "asset" | "set" | "job";
     id: string;
     name: string;
     quantity: number;
     maxQuantity: number;
-    asset?: Asset;
-    set?: AssetSet;
+    entity?: T;
     content?: Asset[];
 }
