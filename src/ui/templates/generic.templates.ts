@@ -13,6 +13,7 @@ import {InputType} from "../lib/fjsc/src/Types";
 import {Item} from "../../models/Item";
 import {editAsset, editJob, editSet} from "../classes/actions";
 import {TextSegmentType} from "../enums/TextSegmentType";
+import {AssetSet} from "../../models/AssetSet";
 
 export class GenericTemplates {
     static input<T>(type: InputType, name: string, value: any, placeholder: StringOrSignal, label: StringOrSignal, id: any, classes: StringOrSignal[] = [],
@@ -191,10 +192,15 @@ export class GenericTemplates {
     }
 
     static itemName(item: Item) {
+        const editable = item.type !== "set" || !!((item.entity as AssetSet).basedOnId);
+
         return create("span")
-            .classes("title", "clickable")
+            .classes(...(editable ? ["title", "clickable"] : []))
             .text(item.name)
             .onclick(() => {
+                if (!editable) {
+                    return;
+                }
                 switch (item.type) {
                     case "asset":
                         editAsset(item.entity);
