@@ -9,6 +9,7 @@ import {assetList} from "../classes/store";
 import {deleteSet, getUpdateSetMethod, newSet} from "../classes/actions";
 import {AssetTemplates} from "./asset.templates";
 import {InputType} from "../lib/fjsc/src/Types";
+import {Asset} from "../../models/Asset";
 
 export class SetTemplates {
     static setList(setList: Signal<AssetSet[]>, selectedSetId: Signal<string>) {
@@ -239,7 +240,12 @@ export class SetTemplates {
                             });
                         }),
                         ifjs(loading, GenericTemplates.spinner()),
-                    ).build()
+                    ).build(),
+                ifjs(isUpdate, create("div")
+                    .classes("flex", "align-center")
+                    .children(
+                        GenericTemplates.copyButton("Copy ID", set?.id)
+                    ).build())
             ).build();
     }
 

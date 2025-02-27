@@ -1,5 +1,5 @@
 import {GenericTemplates} from "./generic.templates";
-import {closeModal} from "../classes/ui";
+import {closeModal, toast} from "../classes/ui";
 import {AssetTypes, Callback} from "../classes/types";
 import {searchList} from "../classes/search";
 import {DayRateCalculator} from "../classes/dayRateCalculator";
@@ -11,6 +11,7 @@ import {assetList, jobList} from "../classes/store";
 import {deleteAsset, getUpdateAssetMethod, newAsset, newSet} from "../classes/actions";
 import {itemFromAsset} from "../classes/availabilityCalculator";
 import {InputType} from "../lib/fjsc/src/Types";
+import {ToastType} from "../enums/ToastType";
 
 export class AssetTemplates {
     static assetList(assetList: Signal<Asset[]>, selectedAssetId: Signal<string>) {
@@ -371,9 +372,7 @@ export class AssetTemplates {
                                 assets: [assetData as Asset]
                             })
                         }),
-                        GenericTemplates.buttonWithIcon("content_copy", "Copy ID", () => {
-                            navigator.clipboard.writeText(assetData.id);
-                        })
+                        GenericTemplates.copyButton("Copy ID", assetData?.id)
                     ).build())
             ).build();
     }

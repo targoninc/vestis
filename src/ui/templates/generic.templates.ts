@@ -1,4 +1,4 @@
-import {closeModal} from "../classes/ui";
+import {closeModal, toast} from "../classes/ui";
 import {createPriceFromCents, parsePrice} from "../classes/currency";
 import {AnyElement, AnyNode, create, ifjs, signalMap, StringOrSignal, TypeOrSignal} from "../lib/fjsc/src/f2";
 import {compute, Signal, signal} from "../lib/fjsc/src/signals";
@@ -14,6 +14,7 @@ import {Item} from "../../models/Item";
 import {editAsset, editJob, editSet} from "../classes/actions";
 import {TextSegmentType} from "../enums/TextSegmentType";
 import {AssetSet} from "../../models/AssetSet";
+import {ToastType} from "../enums/ToastType";
 
 export class GenericTemplates {
     static input<T>(type: InputType, name: string, value: any, placeholder: StringOrSignal, label: StringOrSignal, id: any, classes: StringOrSignal[] = [],
@@ -189,6 +190,16 @@ export class GenericTemplates {
                             ).build()
                     ).build()
             ).build();
+    }
+
+    static copyButton(buttonText: StringOrSignal, text: StringOrSignal) {
+        return GenericTemplates.buttonWithIcon("content_copy", buttonText, async () => {
+            if (text.constructor === String) {
+                text = signal(text);
+            }
+            await navigator.clipboard.writeText((text as Signal<string>).value);
+            toast("ID copied to clipboard", null, ToastType.positive);
+        })
     }
 
     static itemName(item: Item) {

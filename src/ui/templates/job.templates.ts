@@ -115,7 +115,12 @@ export class JobTemplates {
                             });
                         }),
                         ifjs(loading, GenericTemplates.spinner()),
-                    ).build()
+                    ).build(),
+                ifjs(isUpdate, create("div")
+                    .classes("flex", "align-center")
+                    .children(
+                        GenericTemplates.copyButton("Copy ID", jobData?.id)
+                    ).build())
             ).build();
     }
 
