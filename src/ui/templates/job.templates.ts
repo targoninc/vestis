@@ -1,7 +1,7 @@
 import {GenericTemplates} from "./generic.templates";
 import {day} from "../classes/time";
 import {closeModal, createModal} from "../classes/ui";
-import {itemsFromAssetsAndSets, itemFromAsset, itemFromJob} from "../classes/availabilityCalculator";
+import {itemsFromAssetsAndSets, itemFromAsset} from "../classes/availabilityCalculator";
 import {compute, Signal, signal} from "../lib/fjsc/src/signals";
 import {Job} from "../../models/Job";
 import {create, ifjs, signalMap, StringOrSignal} from "../lib/fjsc/src/f2";
@@ -474,6 +474,7 @@ export class JobTemplates {
                                 ...content.map((a, i) => {
                                     const isFirst = i === 0;
                                     const isLast = i === content.length - 1;
+                                    console.log(a.quantity, item.quantity);
 
                                     return create("div")
                                         .classes("flex", "space-between", "secondary-card", isFirst ? "no-radius-top" : (isLast ? "no-radius-bottom" : "_"))

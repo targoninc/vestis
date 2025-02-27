@@ -322,6 +322,16 @@ export class AssetTemplates {
                         }),
                         GenericTemplates.priceDisplay(effectiveDayRate, "Effective day rate")
                     ).build(),
+                create("div")
+                    .classes("flex", "align-center")
+                    .children(
+                        GenericTemplates.input<number>(InputType.number, "weightInGrams", priceInCents, "Weight in grams", "Weight in grams", "weightInGrams", [], (newValue) => {
+                            data.value = {
+                                ...data.value,
+                                weightInGrams: newValue ?? 0,
+                            };
+                        }),
+                    ).build(),
                 create("h3")
                     .text("Tags")
                     .build(),

@@ -19,23 +19,15 @@ export class AssetManagerDB {
     static async insertAsset(db: DB, asset: Asset) {
         const INSERT_ASSET_QUERY = `INSERT INTO assets (id, type, manufacturer, model, serialNumber,
                                                         uniqueString, isDeleted, count, priceInCents, dayRate,
-                                                        description)
-                                    VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)`;
+                                                        description, weightInGrams)
+                                    VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?)`;
 
         const id = uuidv4();
         const {
-            type,
-            manufacturer,
-            model,
-            serialNumber,
-            uniqueString,
-            count,
-            priceInCents,
-            description,
-            dayRate,
-            tags
+            type, manufacturer, model, serialNumber, uniqueString,
+            count, priceInCents, description, dayRate, tags, weightInGrams
         }: Asset = asset;
-        await db.runAsync(INSERT_ASSET_QUERY, [id, type, manufacturer, model, serialNumber, uniqueString, count, priceInCents, dayRate, description]);
+        await db.runAsync(INSERT_ASSET_QUERY, [id, type, manufacturer, model, serialNumber, uniqueString, count, priceInCents, dayRate, description, weightInGrams]);
 
         for (const tag of tags) {
             await db.runAsync(INSERT_TAG_QUERY, [tag.id, tag.name]);
@@ -91,13 +83,14 @@ export class AssetManagerDB {
                                         priceInCents = ?,
                                         dayRateFactor = ?,
                                         dayRate = ?,
-                                        description = ?
+                                        description = ?,
+                                        weightInGrams = ?
                                     WHERE id = ?
                                        OR uniqueString = ?`;
         await db.runAsync(UPDATE_ASSET_QUERY,
             [asset.type, asset.manufacturer, asset.model, asset.serialNumber,
                 asset.uniqueString, asset.count, asset.priceInCents, asset.dayRateFactor,
-                asset.dayRate, asset.description, identifier, identifier]);
+                asset.dayRate, asset.description, asset.weightInGrams, identifier, identifier]);
 
         await db.runAsync(`DELETE FROM assets_tags WHERE asset_id = ?`, [identifier]);
 
@@ -134,7 +127,9 @@ export class AssetManagerDB {
     }
 
     static async getSets(db: DB) {
-        const sets = await db.getAsync<AssetSet>('SELECT * FROM sets ORDER BY createdAt DESC');
+        const sets = await db.getAsync<AssetSet>(`SELECT * FROM sets
+         WHERE basedOnId IS NULL
+         ORDER BY createdAt DESC`);
 
         for (const set of sets) {
             set.assets = await this.getSetAssets(db, set.id);
@@ -143,12 +138,27 @@ export class AssetManagerDB {
         return sets;
     }
 
+    static async linkAssetToSet(db: DB, setId: string, assetId: string, quantity: number) {
+        await db.runAsync('INSERT INTO sets_assets (set_id, asset_id, quantity) VALUES (?, ?, ?)', [setId, assetId, quantity]);
+    }
+
     static async createSet(db: DB, setName: string, assets: Asset[]) {
         const id = uuidv4();
         await db.runAsync('INSERT INTO sets (id, setName) VALUES (?, ?)', [id, setName]);
 
         for (const asset of assets) {
-            await db.runAsync('INSERT INTO sets_assets (set_id, asset_id) VALUES (?, ?)', [id, asset.id]);
+            await AssetManagerDB.linkAssetToSet(db, id, asset.id, asset.quantity);
+        }
+
+        return id;
+    }
+
+    static async createDerivedSet(db: DB, setName: string, basedOnId: string, jobId: string, assets: Asset[]) {
+        const id = uuidv4();
+        await db.runAsync('INSERT INTO sets (id, setName, basedOnId, jobId) VALUES (?, ?, ?, ?)', [id, setName, basedOnId, jobId]);
+
+        for (const asset of assets) {
+            await AssetManagerDB.linkAssetToSet(db, id, asset.id, asset.quantity);
         }
 
         return id;
@@ -159,7 +169,7 @@ export class AssetManagerDB {
 
         await db.runAsync('DELETE FROM sets_assets WHERE set_id = ?', [id]);
         for (const asset of setData.assets) {
-            await db.runAsync('INSERT INTO sets_assets (set_id, asset_id, quantity) VALUES (?, ?, ?)', [id, asset.id, asset.quantity]);
+            await AssetManagerDB.linkAssetToSet(db, id, asset.id, asset.quantity);
         }
     }
 
@@ -176,6 +186,16 @@ export class AssetManagerDB {
         return await db.getAsync('SELECT s.*, js.quantity FROM sets AS s INNER JOIN jobs_sets AS js ON s.id = js.set_id WHERE js.job_id = ?', [jobId]);
     }
 
+    static async getJobSet(db: DB, jobId: string, setId: string): Promise<AssetSet> {
+        const sets = await db.getAsync<AssetSet>('SELECT s.*, js.quantity FROM sets AS s INNER JOIN jobs_sets AS js ON s.id = js.set_id WHERE js.job_id = ? AND s.id = ?', [jobId, setId]);
+        if (!sets) {
+            return null;
+        }
+        const set = sets[0];
+        set.assets = await this.getSetAssets(db, set.id);
+        return set;
+    }
+
     static async getSet(db: DB, id: string) {
         const sets = await db.getAsync<AssetSet>('SELECT * FROM sets WHERE id = ?', [id]);
         if (!sets) {
@@ -187,6 +207,14 @@ export class AssetManagerDB {
         return set;
     }
 
+    static async linkSetToJob(db: DB, jobId: string, setId: string, quantity: number) {
+        await db.runAsync('INSERT INTO jobs_sets (job_id, set_id, quantity) VALUES (?, ?, ?)', [jobId, setId, quantity]);
+    }
+
+    static async linkAssetToJob(db: DB, jobId: string, assetId: string, quantity: number) {
+        await db.runAsync('INSERT INTO jobs_assets (job_id, asset_id, quantity) VALUES (?, ?, ?)', [jobId, assetId, quantity]);
+    }
+
     static async createJob(db: DB, jobData: Job) {
         const {jobNumber, customerId, contact, name, startTime, endTime, dayCount, disposition, assets, sets} = jobData;
         const id = uuidv4();
@@ -194,11 +222,12 @@ export class AssetManagerDB {
             [id, jobNumber, customerId, contact, name, startTime, endTime, dayCount, disposition]);
 
         for (const asset of assets) {
-            await db.runAsync('INSERT INTO jobs_assets (job_id, asset_id) VALUES (?, ?)', [id, asset.id]);
+            await AssetManagerDB.linkAssetToJob(db, id, asset.id, asset.quantity);
         }
 
         for (const set of sets) {
-            await db.runAsync('INSERT INTO jobs_sets (job_id, set_id) VALUES (?, ?)', [id, set.id]);
+            const newSetId = await AssetManagerDB.createDerivedSet(db, set.setName, set.id, id, set.assets);
+            await AssetManagerDB.linkSetToJob(db, id, newSetId, set.quantity);
         }
 
         return id;
@@ -233,19 +262,34 @@ export class AssetManagerDB {
         return job;
     }
 
-    static async updateJob(db: DB, id: string, job: Job) {
+    static async updateJob(db: DB, jobId: string, job: Job) {
         await db.runAsync('UPDATE jobs SET jobNumber = ?, customerId = ?, contact = ?, name = ?, startTime = ?, endTime = ?, dayCount = ?, disposition = ? WHERE id = ?',
-            [job.jobNumber, job.customerId, job.contact, job.name, job.startTime, job.endTime, job.dayCount, job.disposition, id]);
+            [job.jobNumber, job.customerId, job.contact, job.name, job.startTime, job.endTime, job.dayCount, job.disposition, jobId]);
 
-        await db.runAsync('DELETE FROM jobs_assets WHERE job_id = ?', [id]);
+        await db.runAsync('DELETE FROM jobs_assets WHERE job_id = ?', [jobId]);
         for (const asset of job.assets) {
-            await db.runAsync('INSERT INTO jobs_assets (job_id, asset_id, quantity) VALUES (?, ?, ?)', [id, asset.id, asset.quantity]);
+            await AssetManagerDB.linkAssetToJob(db, jobId, asset.id, asset.quantity);
         }
 
-        await db.runAsync('DELETE FROM jobs_sets WHERE job_id = ?', [id]);
-        for (const set of job.sets) {
-            await db.runAsync('INSERT INTO jobs_sets (job_id, set_id, quantity) VALUES (?, ?, ?)', [id, set.id, set.quantity]);
+        await db.runAsync('DELETE FROM jobs_sets WHERE job_id = ?', [jobId]);
+        for (let set of job.sets) {
+            if (!set.basedOnId || !set.jobId) {
+                const newSetId = await AssetManagerDB.createDerivedSet(db, set.setName, set.id, jobId, set.assets);
+                await AssetManagerDB.linkSetToJob(db, jobId, newSetId, set.quantity);
+                set = await AssetManagerDB.getJobSet(db, jobId, newSetId);
+            } else {
+                await AssetManagerDB.linkSetToJob(db, jobId, set.id, set.quantity);
+            }
         }
+        const danglingSets = await AssetManagerDB.getDanglingJobSets(db, jobId);
+        for (const set of danglingSets) {
+            await AssetManagerDB.deleteSet(db, set.id);
+        }
+    }
+
+    static async getDanglingJobSets(db: DB, jobId: string): Promise<{ id: string }[]> {
+        return await db.getAsync('SELECT id FROM sets WHERE jobId = ? AND id NOT IN (SELECT set_id FROM jobs_sets WHERE job_id = ?)', [jobId, jobId]);
+
     }
 
     static async deleteJob(db: DB, id: string) {

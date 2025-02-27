@@ -4,6 +4,7 @@ import {initializeTables, insertDefaultTags} from "./defaultValues";
 import fs from "fs";
 import path from "path";
 import {CLI} from "./CLI";
+import {migrate} from "./migrations/migrate";
 
 export class DB {
     private readonly db_path: string;
@@ -30,9 +31,10 @@ export class DB {
             driver: sqlite3.Database
         });
 
-        db.getDatabaseInstance().serialize(() => {
-            initializeTables(db);
-            insertDefaultTags(db);
+        db.getDatabaseInstance().serialize(async () => {
+            await migrate(db);
+            await initializeTables(db);
+            await insertDefaultTags(db);
 
             CLI.log('DB started at ' + (db_path ?? ':memory:'));
         });

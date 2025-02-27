@@ -15,6 +15,7 @@ export interface Asset extends Record<string, any> {
     updatedAt: Date;
     dayRateFactor: number;
     dayRate: number;
+    weightInGrams?: number;
     quantity?: number;
     tags?: Tag[];
 }

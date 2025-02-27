@@ -1,5 +1,5 @@
-export function initializeTables(db: any) {
-    db.run(`
+export async function initializeTables(db: any) {
+    await db.run(`
         CREATE TABLE IF NOT EXISTS assets
         (
             id            TEXT PRIMARY KEY,
@@ -19,7 +19,7 @@ export function initializeTables(db: any) {
         );
     `);
 
-    db.run(`
+    await db.run(`
         CREATE TABLE IF NOT EXISTS tags
         (
             id       TEXT PRIMARY KEY,
@@ -29,7 +29,7 @@ export function initializeTables(db: any) {
         );
     `);
 
-    db.run(`
+    await db.run(`
         CREATE TABLE IF NOT EXISTS assets_tags
         (
             asset_id TEXT,
@@ -40,7 +40,7 @@ export function initializeTables(db: any) {
         );
     `);
 
-    db.run(`
+    await db.run(`
         CREATE TABLE IF NOT EXISTS sets
         (
             id       TEXT PRIMARY KEY,
@@ -50,7 +50,7 @@ export function initializeTables(db: any) {
         );
     `);
 
-    db.run(`
+    await db.run(`
         CREATE TABLE IF NOT EXISTS sets_assets
         (
             set_id    TEXT,
@@ -64,7 +64,7 @@ export function initializeTables(db: any) {
         );
     `);
 
-    db.run(`
+    await db.run(`
         CREATE TABLE IF NOT EXISTS jobs
         (
             id         TEXT PRIMARY KEY,
@@ -81,7 +81,7 @@ export function initializeTables(db: any) {
         );
     `);
 
-    db.run(`
+    await db.run(`
         CREATE TABLE IF NOT EXISTS jobs_assets
         (
             job_id TEXT,
@@ -95,7 +95,7 @@ export function initializeTables(db: any) {
         );
     `);
 
-    db.run(`
+    await db.run(`
         CREATE TABLE IF NOT EXISTS jobs_sets
         (
             job_id TEXT,
@@ -109,7 +109,7 @@ export function initializeTables(db: any) {
         );
     `);
 
-    db.run(`
+    await db.run(`
         CREATE TRIGGER IF NOT EXISTS updated_assets
         AFTER UPDATE ON assets
         FOR EACH ROW
@@ -118,7 +118,7 @@ export function initializeTables(db: any) {
         END;
     `);
 
-    db.run(`
+    await db.run(`
         CREATE TRIGGER IF NOT EXISTS updated_tags
         AFTER UPDATE ON tags
         FOR EACH ROW
@@ -127,7 +127,7 @@ export function initializeTables(db: any) {
         END;
     `);
 
-    db.run(`
+    await db.run(`
         CREATE TRIGGER IF NOT EXISTS updated_assets_tags
         AFTER UPDATE ON assets_tags
         FOR EACH ROW
@@ -136,7 +136,7 @@ export function initializeTables(db: any) {
         END;
     `);
 
-    db.run(`
+    await db.run(`
         CREATE TRIGGER IF NOT EXISTS updated_sets
         AFTER UPDATE ON sets
         FOR EACH ROW
@@ -145,7 +145,7 @@ export function initializeTables(db: any) {
         END;
     `);
 
-    db.run(`
+    await db.run(`
         CREATE TRIGGER IF NOT EXISTS updated_sets_assets
         AFTER UPDATE ON sets_assets
         FOR EACH ROW
@@ -154,7 +154,7 @@ export function initializeTables(db: any) {
         END;
     `);
 
-    db.run(`
+    await db.run(`
         CREATE TRIGGER IF NOT EXISTS updated_jobs
         AFTER UPDATE ON jobs
         FOR EACH ROW
@@ -163,7 +163,7 @@ export function initializeTables(db: any) {
         END;
     `);
 
-    db.run(`
+    await db.run(`
         CREATE TRIGGER IF NOT EXISTS updated_jobs_assets
         AFTER UPDATE ON jobs_assets
         FOR EACH ROW
@@ -172,7 +172,7 @@ export function initializeTables(db: any) {
         END;
     `);
 
-    db.run(`
+    await db.run(`
         CREATE TRIGGER IF NOT EXISTS updated_jobs_sets
         AFTER UPDATE ON jobs_sets
         FOR EACH ROW
@@ -182,8 +182,8 @@ export function initializeTables(db: any) {
     `);
 }
 
-export function insertDefaultTags(db: any) {
-    db.run(`
+export async function insertDefaultTags(db: any) {
+    await db.run(`
         INSERT INTO tags (id, name) VALUES ('body', 'Body'), ('lens', 'Lens'), ('accessories', 'Accessories'), ('cable', 'Cable'), ('power', 'Power'), ('stand', 'Stand'), ('other', 'Other') ON CONFLICT DO NOTHING;
     `);
 }

@@ -1,4 +1,3 @@
-import {WindowsEventWriter} from "./events/WindowsEventWriter";
 import {OsEventWriter} from "./events/OsEventWriter";
 
 
