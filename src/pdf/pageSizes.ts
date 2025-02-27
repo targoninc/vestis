@@ -1,7 +1,7 @@
-import {BLANK_PDF} from "@pdfme/common";
+export const pagePadding = 10;
 
 export const pageA4 = {
     width: 210,
     height: 297,
-    padding: [10, 10, 10, 10]
+    padding: Array(4).fill(pagePadding)
 };

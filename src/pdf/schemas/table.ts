@@ -3,31 +3,45 @@ import {Template} from "@pdfme/common";
 export interface TableSchemaConfig {
     name: string;
     headers: string[];
+    showHead?: boolean;
+    width: number;
+    position: {
+        x: number;
+        y: number;
+    }
     font?: string;
     fontSize?: number;
     cellPadding?: number;
+    borders?: {
+        top?: boolean;
+        right?: boolean;
+        bottom?: boolean;
+        left?: boolean;
+    },
+    transparent?: boolean;
 }
 
-const defaultCellPadding = 5;
-const defaultFontSize = 13;
+const defaultCellPadding = .5;
+const defaultFontSize = 10;
 const defaultFont = "Arial";
+const borderWidth = 0.1;
+
+const white = "#ffffff";
+const black = "#000000";
 
 export function tableSchema(config: TableSchemaConfig): Template {
     return {
         name: config.name,
         type: "table",
-        position: {
-            "x": 28.92,
-            "y": 51.36
-        },
-        width: 150,
-        height: 57.5184,
-        showHead: true,
+        position: config.position,
+        width: config.width,
+        height: 1,
+        showHead: config.showHead ?? true,
         head: config.headers,
-        headWidthPercentages: config.headers.map(() => 100 / config.headers.length),
+        headWidthPercentages: config.headers?.map(() => 100 / config.headers.length),
         tableStyles: {
-            borderWidth: 0.3,
-            borderColor: "#000000"
+            borderWidth: 0,
+            borderColor: black
         },
         headStyles: {
             fontName: config.font ?? defaultFont,
@@ -36,14 +50,14 @@ export function tableSchema(config: TableSchemaConfig): Template {
             alignment: "left",
             verticalAlignment: "middle",
             lineHeight: 1,
-            fontColor: "#000000",
-            borderColor: "#888888",
-            backgroundColor: "#eeeeee",
+            fontColor: black,
+            borderColor: config.transparent ? white : "#888888",
+            backgroundColor: config.transparent ? white : "#eeeeee",
             borderWidth: {
-                top: 0.1,
-                right: 0.1,
-                bottom: 0.1,
-                left: 0.1
+                top: config.borders?.top ? borderWidth : 0,
+                right: config.borders?.right ? borderWidth : 0,
+                bottom: config.borders?.bottom ? borderWidth : 0,
+                left: config.borders?.left ? borderWidth : 0,
             },
             padding: {
                 top: config.cellPadding ?? defaultCellPadding,
@@ -59,15 +73,14 @@ export function tableSchema(config: TableSchemaConfig): Template {
             alignment: "left",
             verticalAlignment: "middle",
             lineHeight: 1,
-            fontColor: "#000000",
-            borderColor: "#888888",
-            backgroundColor: "",
-            alternateBackgroundColor: "#f5f5f5",
+            fontColor: black,
+            borderColor: config.transparent ? white : "#888888",
+            backgroundColor: config.transparent ? white : "",
             borderWidth: {
-                top: 0.1,
-                right: 0.1,
-                bottom: 0.1,
-                left: 0.1
+                top: config.borders?.top ? borderWidth : 0,
+                right: config.borders?.right ? borderWidth : 0,
+                bottom: config.borders?.bottom ? borderWidth : 0,
+                left: config.borders?.left ? borderWidth : 0,
             },
             padding: {
                 top: config.cellPadding ?? defaultCellPadding,

@@ -1,22 +1,9 @@
-import {Template} from '@pdfme/common';
 import {barcodes, image, table, text} from '@pdfme/schemas';
 import {generate} from "@pdfme/generator";
-import {tableSchema} from "./src/pdf/schemas/table";
-import {pageA4} from "./src/pdf/pageSizes";
 import fs from "fs";
 import path from 'path';
-
-const template: Template = {
-    schemas: [
-        [
-            tableSchema({
-                name: "test",
-                headers: ["One", "Two", "Three"],
-            })
-        ],
-    ],
-    basePdf: pageA4,
-};
+import {exec} from "node:child_process";
+import {deliveryNote, DeliveryNoteInput} from "./src/pdf/schemas/deliveryNote";
 
 const plugins = {
     Text: text,
@@ -25,14 +12,30 @@ const plugins = {
     Table: table,
 };
 
-const inputs = [
-    {
-        test: [
-            ["test", "test2", "test3"],
-        ],
-    },
-];
+const inputs: DeliveryNoteInput = {
+    jobInfo: [
+        ["Produktion:", `"Agentur Imagefilm - Angebot"`],
+        ["VorgangsNr.:", "000001"],
+        ["", ""],
+        ["Projektleitung:", "Max Mustermann"],
+        ["Dispo:", "Alice Anderson"],
+        ["Ladetag:", "25.02.2025"],
+        ["Prod.-Zeitraum:", "26.02.2025 - 01.03.2025"],
+        ["Rückladetag:", "02.03.2025"],
+    ],
+    jobItems: [
+        ["1", "+ ARRI Alexa Mini LF SET"],
+        ["1", "  - ARRI Alexa Mini LF"],
+        ["1", "  - ARRI PL > LPL Adapter"],
+    ],
+};
 
-generate({template, inputs, plugins}).then((pdf) => {
+generate({
+    template: deliveryNote,
+    inputs: [inputs],
+    plugins
+}).then((pdf) => {
     fs.writeFileSync(path.join(__dirname, `test.pdf`), pdf);
+
+    exec("test.pdf");
 });
