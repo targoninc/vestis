@@ -13,6 +13,8 @@ import {deleteJob, getUpdateJobMethod, newJob} from "../classes/actions";
 import {Item} from "../../models/Item";
 import {typeIcons} from "../enums/TypeIcons";
 import {InputType} from "../lib/fjsc/src/Types";
+import {getJobPdf} from "../../pdf/jobPdfs";
+import {openBlob} from "../../pdf/helpers";
 
 export class JobTemplates {
     static jobForm(jobData: Partial<Job>, title: StringOrSignal, onSubmit: Callback<[Job, any]> = () => {}, isModal = true) {
@@ -119,7 +121,11 @@ export class JobTemplates {
                 ifjs(isUpdate, create("div")
                     .classes("flex", "align-center")
                     .children(
-                        GenericTemplates.copyButton("Copy ID", jobData?.id)
+                        GenericTemplates.copyButton("Copy ID", jobData?.id),
+                        GenericTemplates.buttonWithIcon("print", "Generate delivery note", async () => {
+                            const blob= await getJobPdf(jobData as Job);
+                            openBlob(blob);
+                        })
                     ).build())
             ).build();
     }

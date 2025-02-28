@@ -1,4 +1,7 @@
 import {Template} from "@pdfme/common";
+import {getDynamicHeightsForTable} from '@pdfme/schemas/utils';
+
+export const MM_TO_PT_RATIO = 2.8346;
 
 export interface TableSchemaConfig {
     name: string;
@@ -24,6 +27,7 @@ export interface TableSchemaConfig {
 const defaultCellPadding = .5;
 const defaultFontSize = 10;
 const defaultFont = "Arial";
+const defaultBoldFont = "Arial Bold";
 const borderWidth = 0.1;
 
 const white = "#ffffff";
@@ -44,7 +48,7 @@ export function tableSchema(config: TableSchemaConfig): Template {
             borderColor: black
         },
         headStyles: {
-            fontName: config.font ?? defaultFont,
+            fontName: config.font ?? defaultBoldFont,
             fontSize: config.fontSize ?? defaultFontSize,
             characterSpacing: 0,
             alignment: "left",
@@ -93,4 +97,13 @@ export function tableSchema(config: TableSchemaConfig): Template {
         required: false,
         readOnly: false
     };
+}
+
+export async function getTableHeight(input: string[][], schema: Template) {
+    const heights = await getDynamicHeightsForTable(input, {
+        schema: schema,
+        options: {},
+        _cache: new Map()
+    }) as number[];
+    return heights.reduce((a, b) => a + b, 0);
 }
