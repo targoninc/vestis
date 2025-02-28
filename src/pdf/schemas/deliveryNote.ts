@@ -21,10 +21,12 @@ export function jobInfoSchema(y: number): Template {
         width: fullWidth,
         headers: [{
             name: "Property",
-            alignment: TextAlignment.left
+            alignment: TextAlignment.left,
+            sizeInPercent: 25
         }, {
             name: "Value",
-            alignment: TextAlignment.left
+            alignment: TextAlignment.left,
+            sizeInPercent: 75
         }],
         showHead: false,
         transparent: true,
