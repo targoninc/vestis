@@ -9,5 +9,7 @@ export const en: Record<TranslationKey, string> = {
     [TranslationKey.loadingDay]: "Loading day",
     [TranslationKey.reloadingDay]: "Reloading day",
     [TranslationKey.jobDayCount]: "Production/Billing time",
-    [TranslationKey.days]: "Days"
+    [TranslationKey.days]: "Days",
+    [TranslationKey.amount]: "Amount",
+    [TranslationKey.item]: "Item"
 }

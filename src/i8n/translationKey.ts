@@ -8,4 +8,6 @@ export enum TranslationKey {
     reloadingDay = "reloadingDay",
     jobDayCount = "jobDayCount",
     days = "days",
+    amount = "amount",
+    item = "item",
 }

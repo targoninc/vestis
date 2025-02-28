@@ -17,7 +17,6 @@ export async function getJobPdf(job: Job) {
     const setPrefix = "+ ";
     const assetInSetPrefix = "  - ";
     const assetPrefix = "+ ";
-    const multiplier = "x";
 
     const startDate = new Date(job.startTime);
     const endDate = new Date(job.endTime);
@@ -37,21 +36,21 @@ export async function getJobPdf(job: Job) {
         ],
         jobItems: [
             ...job.sets.flatMap(set => {
-                const amount = (set.days ?? job.dayCount) + `d ${multiplier} ` + set.quantity.toString();
+                const days = (set.days ?? job.dayCount).toString();
 
                 return [
-                    [amount, setPrefix + set.setName],
+                    [set.quantity.toString(), setPrefix + set.setName, days],
                     ...set.assets.map(asset => {
-                        const amount = (set.days ?? job.dayCount) + `d ${multiplier} ` + asset.quantity.toString();
+                        const days = (set.days ?? job.dayCount).toString();
 
-                        return [amount, assetInSetPrefix + asset.manufacturer + " " + asset.model];
+                        return [asset.quantity.toString(), assetInSetPrefix + asset.manufacturer + " " + asset.model, days];
                     })
                 ]
             }),
             ...job.assets.map(asset => {
-                const amount = (asset.days ?? job.dayCount) + `d ${multiplier} ` + asset.quantity.toString();
+                const days = (asset.days ?? job.dayCount).toString();
 
-                return [amount, assetPrefix + asset.manufacturer + " " + asset.model];
+                return [asset.quantity.toString(), assetPrefix + asset.manufacturer + " " + asset.model, days];
             })
         ],
     };

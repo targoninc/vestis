@@ -1,28 +1,7 @@
 import {Template} from "@pdfme/common";
 import {getDynamicHeightsForTable} from '@pdfme/schemas/utils';
-
-export const MM_TO_PT_RATIO = 2.8346;
-
-export interface TableSchemaConfig {
-    name: string;
-    headers: string[];
-    showHead?: boolean;
-    width: number;
-    position: {
-        x: number;
-        y: number;
-    }
-    font?: string;
-    fontSize?: number;
-    cellPadding?: number;
-    borders?: {
-        top?: boolean;
-        right?: boolean;
-        bottom?: boolean;
-        left?: boolean;
-    },
-    transparent?: boolean;
-}
+import {TableSchemaConfig} from "./tableSchemaConfig";
+import {TextAlignment} from "../textAlignment";
 
 const defaultCellPadding = .5;
 const defaultFontSize = 10;
@@ -41,11 +20,17 @@ export function tableSchema(config: TableSchemaConfig): Template {
         width: config.width,
         height: 1,
         showHead: config.showHead ?? true,
-        head: config.headers,
-        headWidthPercentages: config.headers?.map(() => 100 / config.headers.length),
+        head: config.headers.map(h => h.name),
+        headWidthPercentages: config.headers?.map((h) => h.sizeInPercent ?? (100 / config.headers.length)),
         tableStyles: {
             borderWidth: 0,
             borderColor: black
+        },
+        columnStyles: {
+            alignment: config.headers.reduce((a, b, i) => {
+                a[i.toString()] = b.alignment ?? TextAlignment.left;
+                return a;
+            }, {})
         },
         headStyles: {
             fontName: config.font ?? defaultBoldFont,
@@ -91,9 +76,8 @@ export function tableSchema(config: TableSchemaConfig): Template {
                 right: config.cellPadding ?? defaultCellPadding,
                 bottom: config.cellPadding ?? defaultCellPadding,
                 left: config.cellPadding ?? defaultCellPadding
-            }
+            },
         },
-        columnStyles: {},
         required: false,
         readOnly: false
     };

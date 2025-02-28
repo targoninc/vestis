@@ -4,6 +4,7 @@ import {getMmByPercentageOf} from "../helpers";
 import {pageA4} from "../pageSizes";
 import {TranslationKey} from "../../i8n/translationKey";
 import {t} from "../../i8n/translation";
+import {TextAlignment} from "../textAlignment";
 
 export interface DeliveryNoteInput {
     jobInfo: string[][];
@@ -18,7 +19,13 @@ export function jobInfoSchema(y: number): Template {
     return tableSchema({
         name: "jobInfo",
         width: fullWidth,
-        headers: ["Property", "Value"],
+        headers: [{
+            name: "Property",
+            alignment: TextAlignment.left
+        }, {
+            name: "Value",
+            alignment: TextAlignment.left
+        }],
         showHead: false,
         transparent: true,
         position: {
@@ -31,7 +38,23 @@ export function jobInfoSchema(y: number): Template {
 export function jobItemsSchema(y: number): Template {
     return tableSchema({
         name: "jobItems",
-        headers: ["Amount", "Item"],
+        headers: [
+            {
+                name: t(TranslationKey.amount),
+                alignment: TextAlignment.left,
+                sizeInPercent: 10,
+            },
+            {
+                name: t(TranslationKey.item),
+                alignment: TextAlignment.left,
+                sizeInPercent: 80,
+            },
+            {
+                name: t(TranslationKey.days),
+                alignment: TextAlignment.right,
+                sizeInPercent: 10,
+            },
+        ],
         width: fullWidth,
         position: {
             x: left,
