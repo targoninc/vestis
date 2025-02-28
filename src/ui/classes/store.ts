@@ -1,10 +1,12 @@
 import {Api} from "./api";
-import {compute, signal} from "../lib/fjsc/src/signals";
+import {signal} from "../lib/fjsc/src/signals";
 import {Asset} from "../../models/Asset";
 import {AssetSet} from "../../models/AssetSet";
 import {Tag} from "../../models/Tag";
 import {Job} from "../../models/Job";
 import {Configuration} from "../../models/Configuration";
+import {language} from "./i8n/translation";
+import {Language} from "./i8n/language";
 
 export const activePage = signal<string>("calendar");
 activePage.subscribe(async (page, changed) => {
@@ -23,6 +25,9 @@ export const currentCheckout = signal({
 });
 export const scannerBuffer = signal<string>("");
 export const configuration = signal<Configuration>({} as Configuration);
+configuration.subscribe(c => {
+    language.value = c.language as Language;
+});
 
 export function initializeStore() {
     Api.getConfig().then(conf => {

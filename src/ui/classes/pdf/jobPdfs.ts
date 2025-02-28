@@ -1,9 +1,9 @@
 import {barcodes, image, rectangle, table, text} from "@pdfme/schemas";
-import {Job} from "../models/Job";
 import {deliveryNote, DeliveryNoteInput} from "./schemas/deliveryNote";
 import {t} from "../i8n/translation";
 import {TranslationKey} from "../i8n/translationKey";
 import {generate} from "@pdfme/generator";
+import {Job} from "../../../models/Job";
 
 const plugins = {
     Text: text,
@@ -13,7 +13,7 @@ const plugins = {
     Rectangle: rectangle,
 };
 
-export async function getJobPdf(job: Job) {
+export async function deliveryNotePdf(job: Job) {
     const setPrefix = "+ ";
     const assetInSetPrefix = "  - ";
     const assetPrefix = "+ ";
@@ -55,7 +55,7 @@ export async function getJobPdf(job: Job) {
         ],
     };
 
-    return new Promise<Blob>((resolve, reject) => {
+    return new Promise<Blob>((resolve) => {
         generate({
             template: deliveryNote,
             inputs: [inputs],

@@ -3,5 +3,5 @@ export interface SettingsConfiguration {
     icon: string;
     label: string,
     description: string,
-    type: "string" | "number" | "boolean",
+    type: "string" | "number" | "boolean" | "language",
 }

@@ -30,6 +30,13 @@ export class SettingsTemplates {
                 description: "Will be displayed in the UI.",
                 type: "string",
             },
+            {
+                key: "language",
+                icon: "language",
+                label: "Language",
+                description: "The language to use throughout Vestis.",
+                type: "language",
+            },
         ];
         const loading = signal(false);
 
@@ -44,7 +51,7 @@ export class SettingsTemplates {
                             .build(),
                         ifjs(loading, GenericTemplates.spinner()),
                     ).build(),
-                settings.map(s => SettingsTemplates.setting(s, loading)),
+                ...settings.map(s => SettingsTemplates.setting(s, loading)),
                 create("p")
                     .classes("align-center", "flex")
                     .children(
@@ -101,6 +108,17 @@ export class SettingsTemplates {
                 return GenericTemplates.input(InputType.number, sc.key, value, sc.label, sc.label, sc.key, [], (newValue: string) => updateKey(sc.key, parseInt(newValue)));
             case "boolean":
                 return GenericTemplates.toggle(sc.label, value, val => updateKey(sc.key, val));
+            case "language":
+                return GenericTemplates.select(sc.label, [
+                    {
+                        text: "English",
+                        value: "en",
+                    },
+                    {
+                        text: "Deutsch",
+                        value: "de",
+                    },
+                ], value, val => updateKey(sc.key, val));
             default:
                 return nullElement();
         }

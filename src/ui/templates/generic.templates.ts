@@ -15,9 +15,11 @@ import {editAsset, editJob, editSet} from "../classes/actions";
 import {TextSegmentType} from "../enums/TextSegmentType";
 import {AssetSet} from "../../models/AssetSet";
 import {ToastType} from "../enums/ToastType";
+import {t$} from "../classes/i8n/translation";
+import {TranslationKey} from "../classes/i8n/translationKey";
 
 export class GenericTemplates {
-    static input<T>(type: InputType, name: string, value: any, placeholder: StringOrSignal, label: StringOrSignal, id: any, classes: StringOrSignal[] = [],
+    static input<T>(type: InputType, name: StringOrSignal, value: any, placeholder: StringOrSignal, label: StringOrSignal, id: any, classes: StringOrSignal[] = [],
                  onchange: Callback<[T]> = () => {}, attributes: StringOrSignal[] = [], required = false) {
         return FJSC.input<T>({
             type,
@@ -161,7 +163,7 @@ export class GenericTemplates {
             ).build();
     }
 
-    static select(label: string | null, options: Array<{ text: string; value: any; }>, value: any, onchange: (value: any) => void) {
+    static select(label: StringOrSignal | null, options: Array<{ text: string; value: any; }>, value: any, onchange: (value: any) => void) {
         return create("div")
             .classes("flex", "align-center")
             .children(
@@ -492,19 +494,18 @@ export class GenericTemplates {
             ).build();
     }
 
-    static tableListHeader(headerName: string, property: string|((c: any) => void), activeSortHeader: Signal<string>, listSignal: Signal<any[]>) {
+    static tableListHeader(headerName: StringOrSignal, property: string|((c: any) => void), activeSortHeader: Signal<string>, listSignal: Signal<any[]>) {
         const currentSortType = signal("desc");
-        const headerNameFull = signal(headerName);
-        const getHeaderNameFull = () => {
-            if (activeSortHeader.value && activeSortHeader.value === headerName) {
-                headerNameFull.value = `${headerName} ${currentSortType.value === "asc" ? "▲" : "▼"}`;
-            } else {
-                headerNameFull.value = headerName;
-            }
+        if (headerName.constructor === String) {
+            headerName = signal(headerName);
         }
-        activeSortHeader.subscribe(getHeaderNameFull);
-        currentSortType.subscribe(getHeaderNameFull);
-        getHeaderNameFull();
+        headerName = headerName as Signal<string>;
+        const headerNameFull = compute((h, c, a) => {
+            if (a && a === h) {
+                return `${h} ${c === "asc" ? "▲" : "▼"}`;
+            }
+            return h;
+        }, headerName, currentSortType, activeSortHeader);
 
         return create("th")
             .classes("clickable")
@@ -597,8 +598,8 @@ export class GenericTemplates {
             .build();
     }
 
-    static priceInput(value: Signal<number>, label: string, onchange: Callback<[number]> = () => {}, classes: StringOrSignal[] = []) {
-        const name = label.toLowerCase().replaceAll(" ", "-");
+    static priceInput(value: Signal<number>, label: Signal<string>, onchange: Callback<[number]> = () => {}, classes: StringOrSignal[] = []) {
+        const name = compute(label => label.toLowerCase().replaceAll(" ", "-"), label);
         const displayValue = compute(value => createPriceFromCents(value), value);
 
         return create("div")
@@ -672,12 +673,12 @@ export class GenericTemplates {
         return create("div")
             .classes("flex", "align-center")
             .children(
-                GenericTemplates.buttonWithIcon("save", "Save", onSave, ["positive", saveClass]),
+                GenericTemplates.buttonWithIcon("save", t$(TranslationKey.save), onSave, ["positive", saveClass]),
                 ifjs(notSaved, create("div")
                     .classes("flex", "align-center")
                     .children(
-                        ifjs(isUpdate, GenericTemplates.warning("Unsaved changes")),
-                        ifjs(isUpdate, GenericTemplates.buttonWithIcon("settings_backup_restore", "Revert", onRevert)),
+                        ifjs(isUpdate, GenericTemplates.warning(t$(TranslationKey.unsavedChanges))),
+                        ifjs(isUpdate, GenericTemplates.buttonWithIcon("settings_backup_restore", t$(TranslationKey.revert), onRevert)),
                     ).build()),
             ).build();
     }

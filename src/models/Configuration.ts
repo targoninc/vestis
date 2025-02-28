@@ -3,4 +3,5 @@ export interface Configuration extends Record<string, any> {
     last_page: string;
     display_hotkeys: boolean;
     username: string;
+    language: string;
 }

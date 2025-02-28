@@ -1,5 +1,5 @@
 import {GenericTemplates} from "./generic.templates";
-import {closeModal, toast} from "../classes/ui";
+import {closeModal} from "../classes/ui";
 import {AssetTypes, Callback} from "../classes/types";
 import {searchList} from "../classes/search";
 import {DayRateCalculator} from "../classes/dayRateCalculator";
@@ -11,29 +11,30 @@ import {assetList, jobList} from "../classes/store";
 import {deleteAsset, getUpdateAssetMethod, newAsset, newSet} from "../classes/actions";
 import {itemFromAsset} from "../classes/availabilityCalculator";
 import {InputType} from "../lib/fjsc/src/Types";
-import {ToastType} from "../enums/ToastType";
+import {t, t$} from "../classes/i8n/translation";
+import {TranslationKey} from "../classes/i8n/translationKey";
 
 export class AssetTemplates {
     static assetList(assetList: Signal<Asset[]>, selectedAssetId: Signal<string>) {
         const headers = [
             {
-                headerName: "Manufacturer",
+                headerName: t$(TranslationKey.manufacturer),
                 propertyName: "manufacturer",
             },
             {
-                headerName: "Model",
+                headerName: t$(TranslationKey.model),
                 propertyName: "model",
             },
             {
-                headerName: "Serial",
+                headerName: t$(TranslationKey.serialNumber),
                 propertyName: "serialNumber",
             },
             {
-                headerName: "Identifier",
+                headerName: t$(TranslationKey.uniqueString),
                 propertyName: "uniqueString",
             },
             {
-                headerName: "Count",
+                headerName: t$(TranslationKey.ownedCount),
                 propertyName: "count",
             }
         ];
@@ -59,10 +60,10 @@ export class AssetTemplates {
                 create("div")
                     .classes("flex", "align-center")
                     .children(
-                        GenericTemplates.input(InputType.text, "search", search, "Search", null, "search", ["full-width", "search-input"], (value: string) => search.value = value),
+                        GenericTemplates.input(InputType.text, "search", search, t$(TranslationKey.search), null, "search", ["full-width", "search-input"], (value: string) => search.value = value),
                         create("div")
                             .classes("flex")
-                            .children(GenericTemplates.buttonWithIcon("add", "New asset", newAsset, ["positive"], [], "N"))
+                            .children(GenericTemplates.buttonWithIcon("add", t$(TranslationKey.newAsset), newAsset, ["positive"], [], "N"))
                             .build(),
                     ).build(),
                 create("table")
@@ -90,16 +91,16 @@ export class AssetTemplates {
                                 create("tr")
                                     .children(
                                         create("th")
-                                            .text("Manufacturer")
+                                            .text(t$(TranslationKey.manufacturer))
                                             .build(),
                                         create("th")
-                                            .text("Model")
+                                            .text(t$(TranslationKey.model))
                                             .build(),
                                         create("th")
-                                            .text("Serial")
+                                            .text(t$(TranslationKey.serialNumber))
                                             .build(),
                                         create("th")
-                                            .text("Quantity")
+                                            .text(t$(TranslationKey.amount))
                                             .build(),
                                     ).build(),
                             ).build(),
@@ -219,7 +220,7 @@ export class AssetTemplates {
         const count = compute(val => val.count, data);
         const error = compute(d => {
             if (d.manufacturer === "" || d.model === "") {
-                return "Manufacturer and model are required.";
+                return t(TranslationKey.manufacturerAndModelRequired);
             }
 
             return null;
@@ -238,7 +239,7 @@ export class AssetTemplates {
                 create("div")
                     .classes("flex", "align-center")
                     .children(
-                        GenericTemplates.select("Type", Object.values(AssetTypes).map(type => {
+                        GenericTemplates.select(t$(TranslationKey.type), Object.values(AssetTypes).map(type => {
                             return {
                                 text: type.name,
                                 value: type.id,
@@ -255,19 +256,19 @@ export class AssetTemplates {
                 create("div")
                     .classes("flex")
                     .children(
-                        GenericTemplates.input<string>(InputType.text, "manufacturer", manufacturer, "Company", "Manufacturer", "manufacturer", [], (newValue) => {
+                        GenericTemplates.input<string>(InputType.text, "manufacturer", manufacturer, t$(TranslationKey.model), t$(TranslationKey.manufacturer), "manufacturer", [], (newValue) => {
                             data.value = {
                                 ...data.value,
                                 manufacturer: newValue ?? "",
                             };
                         }, [], true),
-                        GenericTemplates.input<string>(InputType.text, "model", model, "Model", "Model", "model", [], (newValue) => {
+                        GenericTemplates.input<string>(InputType.text, "model", model, t$(TranslationKey.model), t$(TranslationKey.model), "model", [], (newValue) => {
                             data.value = {
                                 ...data.value,
                                 model: newValue ?? "",
                             };
                         }, [], true),
-                        GenericTemplates.input<string>(InputType.text, "serialNumber", serialNumber, "Serial", "Serial", "serialNumber", [], (newValue) => {
+                        GenericTemplates.input<string>(InputType.text, "serialNumber", serialNumber, t$(TranslationKey.serialNumber), t$(TranslationKey.serialNumber), "serialNumber", [], (newValue) => {
                             data.value = {
                                 ...data.value,
                                 serialNumber: newValue ?? "",
@@ -277,7 +278,7 @@ export class AssetTemplates {
                 create("div")
                     .classes("flex", "align-center")
                     .children(
-                        GenericTemplates.textArea(description, "Description", "description", text => {
+                        GenericTemplates.textArea(description, t$(TranslationKey.description), "description", text => {
                             data.value = {
                                 ...data.value,
                                 description: text,
@@ -287,13 +288,13 @@ export class AssetTemplates {
                 create("div")
                     .classes("flex", "align-center")
                     .children(
-                        GenericTemplates.input<string>(InputType.text, "uniqueString", uniqueString, "Unique String", "Unique String", "uniqueString", [], (newValue) => {
+                        GenericTemplates.input<string>(InputType.text, "uniqueString", uniqueString, t$(TranslationKey.uniqueString), t$(TranslationKey.uniqueString), "uniqueString", [], (newValue) => {
                             data.value = {
                                 ...data.value,
                                 uniqueString: newValue ?? "",
                             };
                         }),
-                        GenericTemplates.input<number>(InputType.number, "count", count, "Owned count", "Owned count", "count", [], (newValue) => {
+                        GenericTemplates.input<number>(InputType.number, "count", count, t$(TranslationKey.ownedCount), t$(TranslationKey.ownedCount), "count", [], (newValue) => {
                             data.value = {
                                 ...data.value,
                                 count: newValue ?? 0,
@@ -303,30 +304,30 @@ export class AssetTemplates {
                 create("div")
                     .classes("flex", "align-center")
                     .children(
-                        GenericTemplates.priceInput(priceInCents, "Retail price", (newValue) => {
+                        GenericTemplates.priceInput(priceInCents, t$(TranslationKey.retailPrice), (newValue) => {
                             data.value = {
                                 ...data.value,
                                 priceInCents: newValue ?? 0,
                             };
                         }),
-                        GenericTemplates.input<number>(InputType.number, "dayRateFactor", dayRateFactor, "Day rate factor", "Day rate factor", "dayRateFactor", [], (newValue) => {
+                        GenericTemplates.input<number>(InputType.number, "dayRateFactor", dayRateFactor, t$(TranslationKey.dayRateFactor), t$(TranslationKey.dayRateFactor), "dayRateFactor", [], (newValue) => {
                             data.value = {
                                 ...data.value,
                                 dayRateFactor: newValue ?? 0,
                             };
                         }),
-                        GenericTemplates.priceInput(overrideDayRate, "Override day rate", (newValue) => {
+                        GenericTemplates.priceInput(overrideDayRate, t$(TranslationKey.overrideDayRate), (newValue) => {
                             data.value = {
                                 ...data.value,
                                 dayRate: newValue ?? 0,
                             };
                         }),
-                        GenericTemplates.priceDisplay(effectiveDayRate, "Effective day rate")
+                        GenericTemplates.priceDisplay(effectiveDayRate, t$(TranslationKey.effectiveDayRate))
                     ).build(),
                 create("div")
                     .classes("flex", "align-center")
                     .children(
-                        GenericTemplates.input<number>(InputType.number, "weightInGrams", priceInCents, "Weight in grams", "Weight in grams", "weightInGrams", [], (newValue) => {
+                        GenericTemplates.input<number>(InputType.number, "weightInGrams", priceInCents, t$(TranslationKey.weightInGrams), t$(TranslationKey.weightInGrams), "weightInGrams", [], (newValue) => {
                             data.value = {
                                 ...data.value,
                                 weightInGrams: newValue ?? 0,
@@ -334,7 +335,7 @@ export class AssetTemplates {
                         }),
                     ).build(),
                 create("h3")
-                    .text("Tags")
+                    .text(t$(TranslationKey.tags))
                     .build(),
                 GenericTemplates.tagList(data, newTags => {
                     data.value = {
@@ -349,7 +350,7 @@ export class AssetTemplates {
                 create("div")
                     .classes("flex", "align-center")
                     .children(
-                        ifjs(isUpdate, GenericTemplates.buttonWithIcon("delete", "Delete", () => deleteAsset(assetData), ["negative"])),
+                        ifjs(isUpdate, GenericTemplates.buttonWithIcon("delete", t$(TranslationKey.delete), () => deleteAsset(assetData), ["negative"])),
                         GenericTemplates.notSaved(isUpdate, notSaved, notSaveable, () => {
                             data.value = initialData;
                         }, () => {
@@ -366,13 +367,13 @@ export class AssetTemplates {
                 ifjs(isUpdate, create("div")
                     .classes("flex", "align-center")
                     .children(
-                        GenericTemplates.buttonWithIcon("switch_access_shortcut_add", "Create set with asset", () => {
+                        GenericTemplates.buttonWithIcon("switch_access_shortcut_add", t$(TranslationKey.createSetWithAsset), () => {
                             newSet({
                                 setName: `${assetData.manufacturer} ${assetData.model} set`,
                                 assets: [assetData as Asset]
                             })
                         }),
-                        GenericTemplates.copyButton("Copy ID", assetData?.id)
+                        GenericTemplates.copyButton(t$(TranslationKey.copyId), assetData?.id)
                     ).build())
             ).build();
     }
@@ -509,7 +510,7 @@ export class AssetTemplates {
 
     static assetCard(selectedAsset: Signal<Asset>, selectedAssetId: Signal<string>) {
         const form = compute(asset => {
-            return AssetTemplates.assetForm(asset, "Edit asset", getUpdateAssetMethod(asset, selectedAssetId), false);
+            return AssetTemplates.assetForm(asset, t$(TranslationKey.editAsset), getUpdateAssetMethod(asset, selectedAssetId), false);
         }, selectedAsset);
 
         return create("div")

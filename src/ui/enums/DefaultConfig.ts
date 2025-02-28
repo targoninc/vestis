@@ -6,4 +6,5 @@ export const defaultConfig: Configuration = {
     last_page: 'home',
     display_hotkeys: true,
     username: "User",
+    language: "en",
 }

@@ -13,10 +13,10 @@ import {deleteJob, getUpdateJobMethod, newJob} from "../classes/actions";
 import {Item} from "../../models/Item";
 import {typeIcons} from "../enums/TypeIcons";
 import {InputType} from "../lib/fjsc/src/Types";
-import {getJobPdf} from "../../pdf/jobPdfs";
-import {openBlob} from "../../pdf/helpers";
 import {Asset} from "../../models/Asset";
 import {AssetSet} from "../../models/AssetSet";
+import {deliveryNotePdf} from "../classes/pdf/jobPdfs";
+import {openBlob} from "../classes/pdf/helpers";
 
 export class JobTemplates {
     static jobForm(jobData: Partial<Job>, title: StringOrSignal, onSubmit: Callback<[Job, any]> = () => {
@@ -126,7 +126,7 @@ export class JobTemplates {
                     .children(
                         GenericTemplates.copyButton("Copy ID", jobData?.id),
                         GenericTemplates.buttonWithIcon("print", "Generate delivery note", async () => {
-                            const blob = await getJobPdf(jobData as Job);
+                            const blob = await deliveryNotePdf(jobData as Job);
                             openBlob(blob);
                         })
                     ).build())
