@@ -31,7 +31,7 @@ export function jobInfoSchema(y: number): Template {
 export function jobItemsSchema(y: number): Template {
     return tableSchema({
         name: "jobItems",
-        headers: ["Count", "Item"],
+        headers: ["Amount", "Item"],
         width: fullWidth,
         position: {
             x: left,

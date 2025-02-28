@@ -17,6 +17,8 @@ export async function getJobPdf(job: Job) {
     const setPrefix = "+ ";
     const assetInSetPrefix = "  - ";
     const assetPrefix = "+ ";
+    const multiplier = "x";
+
     const startDate = new Date(job.startTime);
     const endDate = new Date(job.endTime);
     startDate.setDate(startDate.getDate() + 1);
@@ -30,20 +32,26 @@ export async function getJobPdf(job: Job) {
             [`${t(TranslationKey.customerName)}:`, job.customerId],
             [`${t(TranslationKey.customerContact)}:`, job.contact],
             [`${t(TranslationKey.loadingDay)}:`, new Date(job.startTime).toLocaleDateString()],
-            [`${t(TranslationKey.productionPeriod)}:`, startDate.toLocaleDateString() + " - " + endDate.toLocaleDateString()],
             [`${t(TranslationKey.reloadingDay)}:`, new Date(job.endTime).toLocaleDateString()],
+            [`${t(TranslationKey.dayCount)}:`, startDate.toLocaleDateString() + " - " + endDate.toLocaleDateString()],
         ],
         jobItems: [
             ...job.sets.flatMap(set => {
+                const amount = (set.days ?? job.dayCount) + `d ${multiplier} ` + set.quantity.toString();
+
                 return [
-                    [set.quantity.toString(), setPrefix + set.setName],
+                    [amount, setPrefix + set.setName],
                     ...set.assets.map(asset => {
-                        return [asset.quantity.toString(), assetInSetPrefix + asset.manufacturer + " " + asset.model];
+                        const amount = (set.days ?? job.dayCount) + `d ${multiplier} ` + asset.quantity.toString();
+
+                        return [amount, assetInSetPrefix + asset.manufacturer + " " + asset.model];
                     })
                 ]
             }),
             ...job.assets.map(asset => {
-                return [asset.quantity.toString(), assetPrefix + asset.manufacturer + " " + asset.model];
+                const amount = (asset.days ?? job.dayCount) + `d ${multiplier} ` + asset.quantity.toString();
+
+                return [amount, assetPrefix + asset.manufacturer + " " + asset.model];
             })
         ],
     };

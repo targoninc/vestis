@@ -496,7 +496,7 @@ export class AssetTemplates {
                     .build(),
                 create("td")
                     .children(
-                        GenericTemplates.quantityChanger(asset.id, true, asset.quantity, asset.count, onQuantityChange),
+                        GenericTemplates.quantityChanger("x", asset.id, true, asset.quantity, asset.count, onQuantityChange),
                     ).build(),
                 create("td")
                     .children(

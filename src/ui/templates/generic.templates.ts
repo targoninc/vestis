@@ -44,7 +44,7 @@ export class GenericTemplates {
             ).build();
     }
 
-    static quantityChanger(id: string, allowChange: boolean|number, initialQuantity: number, maxQuantity: number, onQuantityChange: Callback<[string, number]> = () => {}) {
+    static quantityChanger(label: string, id: string, allowChange: boolean|number, initialQuantity: number, maxQuantity: number, onQuantityChange: Callback<[string, number]> = () => {}) {
         const quantity = signal(initialQuantity ?? 1);
         quantity.subscribe((newQuantity, changed) => {
             if (changed) {
@@ -83,7 +83,7 @@ export class GenericTemplates {
                         type: quantityClass,
                     },
                     {
-                        text: maxQuantity.toString(),
+                        text: maxQuantity.toString() + label,
                         type: TextSegmentType.light,
                     },
                 ]),

@@ -133,6 +133,7 @@ export function itemFromAsset(asset: Asset, jobId: string|null = null) {
         id: asset.id,
         name: asset.manufacturer + " " + asset.model,
         type: "asset",
+        dayCount: asset.days,
         quantity: asset.quantity,
         entity: asset,
         maxQuantity: asset.count - getCountInJobs(jobList.value, asset.id, jobId),
@@ -145,17 +146,9 @@ export function itemFromSet(set: AssetSet, jobId: string|null = null) {
         name: set.setName,
         type: "set",
         entity: set,
+        dayCount: set.days,
         quantity: set.quantity,
         maxQuantity: getMinQuantityFromSet(set, jobId),
         content: set.assets,
-    };
-}
-
-export function itemFromJob(job: Job) {
-    return <Item<Job>>{
-        id: job.id,
-        name: job.name,
-        type: "job",
-        entity: job,
     };
 }

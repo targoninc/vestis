@@ -183,11 +183,15 @@ export class AssetManagerDB {
     }
 
     static async getJobSets(db: DB, jobId: string): Promise<AssetSet[]> {
-        return await db.getAsync('SELECT s.*, js.quantity FROM sets AS s INNER JOIN jobs_sets AS js ON s.id = js.set_id WHERE js.job_id = ?', [jobId]);
+        return await db.getAsync('SELECT s.*, js.quantity, js.days FROM sets AS s INNER JOIN jobs_sets AS js ON s.id = js.set_id WHERE js.job_id = ?', [jobId]);
+    }
+
+    static async getJobAssets(db: DB, jobId: string): Promise<Asset[]> {
+        return await db.getAsync('SELECT a.*, js.quantity, js.days FROM assets AS a INNER JOIN jobs_assets AS js ON a.id = js.asset_id WHERE js.job_id = ?', [jobId]);
     }
 
     static async getJobSet(db: DB, jobId: string, setId: string): Promise<AssetSet> {
-        const sets = await db.getAsync<AssetSet>('SELECT s.*, js.quantity FROM sets AS s INNER JOIN jobs_sets AS js ON s.id = js.set_id WHERE js.job_id = ? AND s.id = ?', [jobId, setId]);
+        const sets = await db.getAsync<AssetSet>('SELECT s.*, js.quantity, js.days FROM sets AS s INNER JOIN jobs_sets AS js ON s.id = js.set_id WHERE js.job_id = ? AND s.id = ?', [jobId, setId]);
         if (!sets) {
             return null;
         }
@@ -207,12 +211,12 @@ export class AssetManagerDB {
         return set;
     }
 
-    static async linkSetToJob(db: DB, jobId: string, setId: string, quantity: number) {
-        await db.runAsync('INSERT INTO jobs_sets (job_id, set_id, quantity) VALUES (?, ?, ?)', [jobId, setId, quantity]);
+    static async linkSetToJob(db: DB, jobId: string, setId: string, quantity: number, days: number|null) {
+        await db.runAsync('INSERT INTO jobs_sets (job_id, set_id, quantity, days) VALUES (?, ?, ?, ?)', [jobId, setId, quantity, days]);
     }
 
-    static async linkAssetToJob(db: DB, jobId: string, assetId: string, quantity: number) {
-        await db.runAsync('INSERT INTO jobs_assets (job_id, asset_id, quantity) VALUES (?, ?, ?)', [jobId, assetId, quantity]);
+    static async linkAssetToJob(db: DB, jobId: string, assetId: string, quantity: number, days: number|null) {
+        await db.runAsync('INSERT INTO jobs_assets (job_id, asset_id, quantity, days) VALUES (?, ?, ?, ?)', [jobId, assetId, quantity, days]);
     }
 
     static async createJob(db: DB, jobData: Job) {
@@ -222,12 +226,12 @@ export class AssetManagerDB {
             [id, jobNumber, customerId, contact, name, startTime, endTime, dayCount, disposition]);
 
         for (const asset of assets) {
-            await AssetManagerDB.linkAssetToJob(db, id, asset.id, asset.quantity);
+            await AssetManagerDB.linkAssetToJob(db, id, asset.id, asset.quantity, asset.days);
         }
 
         for (const set of sets) {
             const newSetId = await AssetManagerDB.createDerivedSet(db, set.setName, set.id, id, set.assets);
-            await AssetManagerDB.linkSetToJob(db, id, newSetId, set.quantity);
+            await AssetManagerDB.linkSetToJob(db, id, newSetId, set.quantity, set.days);
         }
 
         return id;
@@ -253,10 +257,10 @@ export class AssetManagerDB {
             return null;
         }
         const job = jobs[0];
-        job.assets = await db.getAsync('SELECT * FROM assets WHERE id IN (SELECT asset_id FROM jobs_assets WHERE job_id = ?)', [job.id]);
-        job.sets = await db.getAsync('SELECT * FROM sets WHERE id IN (SELECT set_id FROM jobs_sets WHERE job_id = ?)', [job.id]);
+        job.assets = await AssetManagerDB.getJobAssets(db, job.id);
+        job.sets = await AssetManagerDB.getJobSets(db, job.id);
         for (const set of job.sets) {
-            set.assets = await db.getAsync('SELECT * FROM assets WHERE id IN (SELECT asset_id FROM sets_assets WHERE set_id = ?)', [set.id]);
+            set.assets = await AssetManagerDB.getSetAssets(db, set.id);
         }
 
         return job;
@@ -268,17 +272,17 @@ export class AssetManagerDB {
 
         await db.runAsync('DELETE FROM jobs_assets WHERE job_id = ?', [jobId]);
         for (const asset of job.assets) {
-            await AssetManagerDB.linkAssetToJob(db, jobId, asset.id, asset.quantity);
+            await AssetManagerDB.linkAssetToJob(db, jobId, asset.id, asset.quantity, asset.days);
         }
 
         await db.runAsync('DELETE FROM jobs_sets WHERE job_id = ?', [jobId]);
         for (let set of job.sets) {
             if (!set.basedOnId || !set.jobId) {
                 const newSetId = await AssetManagerDB.createDerivedSet(db, set.setName, set.id, jobId, set.assets);
-                await AssetManagerDB.linkSetToJob(db, jobId, newSetId, set.quantity);
+                await AssetManagerDB.linkSetToJob(db, jobId, newSetId, set.quantity, set.days);
                 set = await AssetManagerDB.getJobSet(db, jobId, newSetId);
             } else {
-                await AssetManagerDB.linkSetToJob(db, jobId, set.id, set.quantity);
+                await AssetManagerDB.linkSetToJob(db, jobId, set.id, set.quantity, set.days);
             }
         }
         const danglingSets = await AssetManagerDB.getDanglingJobSets(db, jobId);

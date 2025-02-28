@@ -12,9 +12,9 @@ const dicts: Record<Languages, Record<TranslationKey, string>> = {
 };
 
 export function t$(key: TranslationKey) {
-    return compute(l => dicts[l][key], language);
+    return compute(l => dicts[l][key] ?? key, language);
 }
 
 export function t(key: TranslationKey, language = Languages.en) {
-    return dicts[language][key];
+    return dicts[language][key] ?? key;
 }
