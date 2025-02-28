@@ -475,15 +475,16 @@ export class JobTemplates {
                             .classes("flex", "align-center")
                             .children(
                                 ifjs(hasContent, GenericTemplates.buttonWithIcon(icon, null, () => expanded.value = !expanded.value, ["round-button"])),
+                                GenericTemplates.quantityChanger("x", item.id, true, item.quantity, item.maxQuantity,
+                                    (id: string, newQuantity: number) => onUpdateProperty(id, "quantity", newQuantity)),
                                 GenericTemplates.itemName(item),
                             ).build(),
                         create("div")
                             .classes("flex", "align-center")
                             .children(
+                                ifjs(hasContent, GenericTemplates.buttonWithIcon("event_repeat", null, () => onUpdateProperty(item.id, "days", null))),
                                 GenericTemplates.quantityChanger("d", item.id, true, dayCount, job.dayCount,
                                     (id: string, newDays: number) => onUpdateProperty(id, "days", newDays)),
-                                GenericTemplates.quantityChanger("x", item.id, true, item.quantity, item.maxQuantity,
-                                    (id: string, newQuantity: number) => onUpdateProperty(id, "quantity", newQuantity)),
                                 GenericTemplates.buttonWithIcon("delete", "Remove", () => onRemoveItem(item), ["negative"]),
                             ).build()
                     ).build(),
