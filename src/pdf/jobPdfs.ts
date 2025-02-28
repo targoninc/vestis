@@ -33,7 +33,7 @@ export async function getJobPdf(job: Job) {
             [`${t(TranslationKey.customerContact)}:`, job.contact],
             [`${t(TranslationKey.loadingDay)}:`, new Date(job.startTime).toLocaleDateString()],
             [`${t(TranslationKey.reloadingDay)}:`, new Date(job.endTime).toLocaleDateString()],
-            [`${t(TranslationKey.dayCount)}:`, startDate.toLocaleDateString() + " - " + endDate.toLocaleDateString()],
+            [`${t(TranslationKey.jobDayCount)}:`, job.dayCount + ` ${t(TranslationKey.days)}`],
         ],
         jobItems: [
             ...job.sets.flatMap(set => {

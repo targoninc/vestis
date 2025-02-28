@@ -6,6 +6,6 @@ export enum TranslationKey {
     customerContact = "customerContact",
     loadingDay = "loadingDay",
     reloadingDay = "reloadingDay",
-    dayCount = "dayCount",
+    jobDayCount = "jobDayCount",
     days = "days",
 }

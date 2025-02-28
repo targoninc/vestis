@@ -8,6 +8,6 @@ export const de: Record<TranslationKey, string> = {
     [TranslationKey.customerContact]: "Kontakt",
     [TranslationKey.loadingDay]: "Ladetag",
     [TranslationKey.reloadingDay]: "Rückladetag",
-    [TranslationKey.dayCount]: "Mietzeitraum/Kalkulationsbasis",
+    [TranslationKey.jobDayCount]: "Mietzeitraum/Kalkulationsbasis",
     [TranslationKey.days]: "Tage"
 }
