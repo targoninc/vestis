@@ -117,7 +117,7 @@ export function getMinQuantityFromSet(set: AssetSet, excludeJobId: string|null =
     return set.assets.reduce((prev, cur) => {
         const count = cur.count - getCountInJobs(jobList.value, cur.id, excludeJobId);
         if (count < prev) {
-            return count;
+            return count / cur.quantity;
         }
         return prev;
     }, Infinity);

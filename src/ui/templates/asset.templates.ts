@@ -5,7 +5,7 @@ import {searchList} from "../classes/search";
 import {DayRateCalculator} from "../classes/dayRateCalculator";
 import {Asset} from "../../models/Asset";
 import {compute, Signal, signal} from "../lib/fjsc/src/signals";
-import {create, ifjs, signalMap} from "../lib/fjsc/src/f2";
+import {create, ifjs, signalMap, StringOrSignal} from "../lib/fjsc/src/f2";
 import {Tag} from "../../models/Tag";
 import {assetList, jobList} from "../classes/store";
 import {deleteAsset, getUpdateAssetMethod, newAsset, newSet} from "../classes/actions";
@@ -183,7 +183,7 @@ export class AssetTemplates {
             ).build();
     }
 
-    static assetForm(assetData: Partial<Asset>, title: string, onSubmit = (data: Partial<Asset>, done: any) => {}, isModal = true) {
+    static assetForm(assetData: Partial<Asset>, title: StringOrSignal, onSubmit = (data: Partial<Asset>, done: any) => {}, isModal = true) {
         const maxUniqueId = assetList.value.reduce((max: number, asset) => {
             const number = parseInt(asset.uniqueString);
             if (isNaN(number)) return max;
