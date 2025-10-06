@@ -12,7 +12,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-latest]
+        os: [windows-latest, ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
@@ -60,6 +60,12 @@ jobs:
           name: build-output-ubuntu-latest
           path: release/linux
 
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output-macos-latest
+          path: release/macos
+
       - name: Debug build output
         run: |
           ls -R release
@@ -73,3 +79,4 @@ jobs:
           files: |
             release/linux/**/Vestis-*.AppImage
             release/windows/**/Vestis-*.msi
+            release/macos/**/Vestis-*.dmg
